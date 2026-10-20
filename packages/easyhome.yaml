@@ -1,0 +1,47 @@
+# Development package. Import from GitHub with packages:
+#   easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@dev/ibus-rx
+#
+# Caller must define substitutions: ibus_rx_pin
+external_components:
+  - source:
+      type: git
+      url: https://github.com/Fredzxda/esphome-aldes-easyhome
+      ref: dev/ibus-rx
+    components: [aldes_ibus]
+    refresh: 1min
+
+uart:
+  id: easyhome_uart
+  rx_pin: ${ibus_rx_pin}
+  baud_rate: 2400
+  data_bits: 8
+  parity: EVEN
+  stop_bits: 1
+  rx_buffer_size: 1024
+
+aldes_ibus:
+  id: easyhome_ibus
+  uart_id: easyhome_uart
+
+text_sensor:
+  - platform: template
+    id: easyhome_last_frame
+    name: "iBUS Derniere trame VMC"
+    entity_category: diagnostic
+
+sensor:
+  - platform: template
+    id: easyhome_frames_ok
+    name: "iBUS Trames valides"
+    accuracy_decimals: 0
+    entity_category: diagnostic
+  - platform: template
+    id: easyhome_frames_bad
+    name: "iBUS Checksums invalides"
+    accuracy_decimals: 0
+    entity_category: diagnostic
+  - platform: template
+    id: easyhome_sync_errors
+    name: "iBUS Erreurs de synchronisation"
+    accuracy_decimals: 0
+    entity_category: diagnostic
