@@ -28,12 +28,27 @@ void AldesIBus::publish_counters_() {
   if (this->rx_bytes_sensor_) this->rx_bytes_sensor_->publish_state(this->rx_bytes_);
 }
 
+void AldesIBus::publish_raw_sample_() {
+  if (this->raw_sample_.empty()) return;
+  std::string hex;
+  char tmp[4];
+  for (uint8_t byte : this->raw_sample_) {
+    if (!hex.empty()) hex += ' ';
+    snprintf(tmp, sizeof(tmp), "%02X", byte);
+    hex += tmp;
+  }
+  ESP_LOGI(TAG, "Raw RX sample (%u bytes): %s", (unsigned) this->raw_sample_.size(), hex.c_str());
+  if (this->raw_rx_sensor_) this->raw_rx_sensor_->publish_state(hex);
+  this->raw_sample_.clear();
+}
+
 void AldesIBus::loop() {
   uint8_t byte;
   while (this->available()) {
     if (!this->read_byte(&byte)) break;
     this->buffer_.push_back(byte);
     this->rx_bytes_++;
+    if (this->raw_sample_.size() < 64) this->raw_sample_.push_back(byte);
     this->last_byte_ms_ = millis();
   }
   if (this->buffer_.size() > MAX_BUFFER) {
@@ -45,6 +60,7 @@ void AldesIBus::loop() {
   if (millis() - this->last_publish_ms_ >= 5000) {
     this->last_publish_ms_ = millis();
     this->publish_counters_();
+    this->publish_raw_sample_();
   }
 }
 
