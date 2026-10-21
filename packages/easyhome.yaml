@@ -1,7 +1,7 @@
 # Development package. Import from GitHub with packages:
 #   easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@dev/ibus-rx
 #
-# Caller must define substitutions: ibus_rx_pin, ibus_rx_inverted (true or false)
+# RX-only hardware test: GPIO16 instead of UART0 GPIO3, no RX inversion.
 external_components:
   - source:
       type: git
@@ -13,8 +13,8 @@ external_components:
 uart:
   id: easyhome_uart
   rx_pin:
-    number: ${ibus_rx_pin}
-    inverted: ${ibus_rx_inverted}
+    number: GPIO16
+    inverted: false
   baud_rate: 2400
   data_bits: 8
   parity: EVEN
