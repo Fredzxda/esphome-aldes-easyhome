@@ -16,6 +16,7 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional("checksum_bad"): sensor.sensor_schema(accuracy_decimals=0, entity_category="diagnostic"),
     cv.Optional("sync_errors"): sensor.sensor_schema(accuracy_decimals=0, entity_category="diagnostic"),
     cv.Optional("rx_bytes"): sensor.sensor_schema(accuracy_decimals=0, entity_category="diagnostic"),
+    cv.Optional("raw_rx"): text_sensor.text_sensor_schema(entity_category="diagnostic"),
     cv.Optional("last_frame"): text_sensor.text_sensor_schema(entity_category="diagnostic"),
 }).extend(cv.COMPONENT_SCHEMA).extend(uart.UART_DEVICE_SCHEMA)
 
@@ -36,6 +37,9 @@ async def to_code(config):
         if key in config:
             s = await sensor.new_sensor(config[key])
             cg.add(getattr(var, setter)(s))
+    if "raw_rx" in config:
+        s = await text_sensor.new_text_sensor(config["raw_rx"])
+        cg.add(var.set_raw_rx_sensor(s))
     if "last_frame" in config:
         s = await text_sensor.new_text_sensor(config["last_frame"])
         cg.add(var.set_last_frame_sensor(s))
