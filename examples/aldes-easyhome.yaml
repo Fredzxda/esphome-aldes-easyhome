@@ -2,7 +2,7 @@
 substitutions:
   device_name: aldes-easyhome
   friendly_name: Aldes EasyHome
-  ibus_rx_pin: GPIO16  # EXAMPLE ONLY: replace with verified RX pin
+  ibus_rx_pin: GPIO3  # ESP32 pin labelled RX (U0RXD), connected to R7 on Quentin's PCB
 
 esphome:
   name: ${device_name}
@@ -14,6 +14,7 @@ esp32:
     type: esp-idf
 
 logger:
+  baud_rate: 0  # Disable UART0 serial logs; GPIO3 is used for iBUS RX
 
 api:
   encryption:
