@@ -22,26 +22,13 @@ uart:
 aldes_ibus:
   id: easyhome_ibus
   uart_id: easyhome_uart
-
-text_sensor:
-  - platform: template
-    id: easyhome_last_frame
+  last_frame:
     name: "iBUS Derniere trame VMC"
-    entity_category: diagnostic
-
-sensor:
-  - platform: template
-    id: easyhome_frames_ok
+  frames_ok:
     name: "iBUS Trames valides"
-    accuracy_decimals: 0
-    entity_category: diagnostic
-  - platform: template
-    id: easyhome_frames_bad
+  checksum_bad:
     name: "iBUS Checksums invalides"
-    accuracy_decimals: 0
-    entity_category: diagnostic
-  - platform: template
-    id: easyhome_sync_errors
+  sync_errors:
     name: "iBUS Erreurs de synchronisation"
-    accuracy_decimals: 0
-    entity_category: diagnostic
+  rx_bytes:
+    name: "iBUS Octets recus"
