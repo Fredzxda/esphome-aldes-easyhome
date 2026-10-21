@@ -15,7 +15,6 @@ static constexpr uint32_t FRAME_TIMEOUT_MS = 500;
 
 void AldesIBus::dump_config() {
   ESP_LOGCONFIG(TAG, "Aldes iBUS receiver (RX only)");
-  this->check_uart_settings(2400, 1, uart::UART_CONFIG_PARITY_EVEN, 8);
 }
 
 void AldesIBus::loop() {
