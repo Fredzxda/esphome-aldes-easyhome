@@ -17,11 +17,23 @@ void AldesIBus::dump_config() {
   ESP_LOGCONFIG(TAG, "Aldes iBUS receiver (RX only)");
 }
 
+void AldesIBus::setup() {
+  this->publish_counters_();
+}
+
+void AldesIBus::publish_counters_() {
+  if (this->frames_ok_sensor_) this->frames_ok_sensor_->publish_state(this->frames_ok_);
+  if (this->checksum_bad_sensor_) this->checksum_bad_sensor_->publish_state(this->checksum_bad_);
+  if (this->sync_errors_sensor_) this->sync_errors_sensor_->publish_state(this->sync_errors_);
+  if (this->rx_bytes_sensor_) this->rx_bytes_sensor_->publish_state(this->rx_bytes_);
+}
+
 void AldesIBus::loop() {
   uint8_t byte;
   while (this->available()) {
     if (!this->read_byte(&byte)) break;
     this->buffer_.push_back(byte);
+    this->rx_bytes_++;
     this->last_byte_ms_ = millis();
   }
   if (this->buffer_.size() > MAX_BUFFER) {
@@ -30,6 +42,10 @@ void AldesIBus::loop() {
     ESP_LOGW(TAG, "Receive buffer overflow");
   }
   this->parse_();
+  if (millis() - this->last_publish_ms_ >= 5000) {
+    this->last_publish_ms_ = millis();
+    this->publish_counters_();
+  }
 }
 
 void AldesIBus::parse_() {
@@ -76,7 +92,11 @@ void AldesIBus::parse_() {
     }
     this->frames_ok_++;
     ESP_LOGI(TAG, "VMC frame (%u bytes): %s", (unsigned) size, hex.c_str());
-    // Sensor publication will be wired in the next development commit.
+    if (this->last_frame_sensor_) {
+      // HA states have a 255-character limit. Publish a short prefix;
+      // the complete frame remains available in ESPHome logs.
+      this->last_frame_sensor_->publish_state(hex.substr(0, 240));
+    }
     this->buffer_.erase(this->buffer_.begin(), this->buffer_.begin() + size);
   }
 }
