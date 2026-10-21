@@ -1,7 +1,7 @@
 # Development package. Import from GitHub with packages:
 #   easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@dev/ibus-rx
 #
-# RX-only hardware test: GPIO16 instead of UART0 GPIO3, no RX inversion.
+# RX-only hardware test: UART0 GPIO3, no RX inversion.
 external_components:
   - source:
       type: git
@@ -13,7 +13,7 @@ external_components:
 uart:
   id: easyhome_uart
   rx_pin:
-    number: GPIO16
+    number: GPIO3
     inverted: false
   baud_rate: 2400
   data_bits: 8
