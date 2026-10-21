@@ -18,6 +18,7 @@ class AldesIBus : public Component, public uart::UARTDevice {
   void set_checksum_bad_sensor(sensor::Sensor *s) { checksum_bad_sensor_ = s; }
   void set_sync_errors_sensor(sensor::Sensor *s) { sync_errors_sensor_ = s; }
   void set_rx_bytes_sensor(sensor::Sensor *s) { rx_bytes_sensor_ = s; }
+  void set_raw_rx_sensor(text_sensor::TextSensor *s) { raw_rx_sensor_ = s; }
   void set_last_frame_sensor(text_sensor::TextSensor *s) { last_frame_sensor_ = s; }
   void dump_config() override;
  protected:
@@ -25,16 +26,20 @@ class AldesIBus : public Component, public uart::UARTDevice {
   uint32_t last_byte_ms_{0};
   uint32_t rx_bytes_{0};
   uint32_t last_publish_ms_{0};
+  uint32_t last_raw_publish_ms_{0};
+  std::vector<uint8_t> raw_sample_;
   sensor::Sensor *frames_ok_sensor_{nullptr};
   sensor::Sensor *checksum_bad_sensor_{nullptr};
   sensor::Sensor *sync_errors_sensor_{nullptr};
   sensor::Sensor *rx_bytes_sensor_{nullptr};
   text_sensor::TextSensor *last_frame_sensor_{nullptr};
+  text_sensor::TextSensor *raw_rx_sensor_{nullptr};
   uint32_t frames_ok_{0};
   uint32_t checksum_bad_{0};
   uint32_t sync_errors_{0};
   void parse_();
   void publish_counters_();
+  void publish_raw_sample_();
 };
 
 }  // namespace aldes_ibus
