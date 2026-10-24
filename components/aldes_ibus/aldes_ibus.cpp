@@ -14,7 +14,14 @@ static constexpr size_t MAX_BUFFER = 1024;
 static constexpr uint32_t FRAME_TIMEOUT_MS = 500;
 
 void AldesIBus::dump_config() {
-  ESP_LOGCONFIG(TAG, "Aldes iBUS receiver (RX only)");
+  ESP_LOGCONFIG(TAG, "Aldes iBUS receiver (manual poll)");
+}
+
+void AldesIBus::send_poll() {
+  static const uint8_t poll[] = {0xFD,0x87,0x11,0x4B,0x02,0x02,0x00,0x00,0xFF,0xFF,0x00,0x00,0xFF,0xFF,0xFF,0xFF,0x4A,0x19};
+  this->write_array(poll, sizeof(poll));
+  this->flush();
+  ESP_LOGI(TAG, "Manual poll sent");
 }
 
 void AldesIBus::setup() {
