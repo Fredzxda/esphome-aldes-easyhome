@@ -15,7 +15,7 @@ static constexpr uint32_t FRAME_TIMEOUT_MS = 500;
 static constexpr uint32_t MODE_POLL_INTERVAL_MS = 10000;
 
 void AldesIBus::dump_config() {
-  ESP_LOGCONFIG(TAG, "Aldes iBUS receiver (manual poll)");
+  ESP_LOGCONFIG(TAG, "Aldes iBUS transceiver (periodic mode polling, 10s)");
 }
 
 void AldesIBus::send_poll() {
@@ -48,6 +48,11 @@ void AldesIBus::queue_mode(uint8_t mode) {
 }
 
 void AldesIBus::setup() {
+  // Initialize a safe default for continuous polling after every reboot.
+  // A Home Assistant mode selection overrides this queued command.
+  this->pending_mode_ = 0x43;  // Daily
+  this->mode_pending_ = true;
+  ESP_LOGI(TAG, "Startup: queued Daily mode 0x43 for periodic iBUS polling");
   this->publish_counters_();
 }
 
@@ -88,7 +93,7 @@ void AldesIBus::loop() {
   }
   this->parse_();
   // Queue a refresh of the last successfully transmitted mode every 10 s.
-  // No mode is sent after boot until the user selects one explicitly.
+  // The initial Daily command is queued in setup().
   if (!this->mode_pending_ && this->has_sent_mode_ &&
       millis() - this->last_tx_ms_ >= MODE_POLL_INTERVAL_MS) {
     this->pending_mode_ = this->last_sent_mode_;
