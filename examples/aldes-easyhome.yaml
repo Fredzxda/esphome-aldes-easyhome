@@ -20,6 +20,7 @@ esp32:
 
 logger:
   baud_rate: 0  # Disable UART0 serial logs; GPIO3 is used for iBUS RX
+  level: ERROR  # Production: show only errors
 
 api:
   encryption:
