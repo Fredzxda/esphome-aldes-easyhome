@@ -20,6 +20,7 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional("rx_bytes"): sensor.sensor_schema(accuracy_decimals=0, entity_category="diagnostic"),
     cv.Optional("raw_rx"): text_sensor.text_sensor_schema(entity_category="diagnostic"),
     cv.Optional("last_frame"): text_sensor.text_sensor_schema(entity_category="diagnostic"),
+    cv.Optional("last_long_frame"): text_sensor.text_sensor_schema(entity_category="diagnostic"),
     cv.Optional("co2"): sensor.sensor_schema(unit_of_measurement="ppm", accuracy_decimals=0, device_class="carbon_dioxide"),
     cv.Optional("varhr"): sensor.sensor_schema(accuracy_decimals=0),
     cv.Optional("pwm1"): sensor.sensor_schema(accuracy_decimals=0),
@@ -73,3 +74,6 @@ async def to_code(config):
     if "last_frame" in config:
         s = await text_sensor.new_text_sensor(config["last_frame"])
         cg.add(var.set_last_frame_sensor(s))
+    if "last_long_frame" in config:
+        s = await text_sensor.new_text_sensor(config["last_long_frame"])
+        cg.add(var.set_last_long_frame_sensor(s))
