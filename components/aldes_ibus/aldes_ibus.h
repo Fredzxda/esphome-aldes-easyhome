@@ -24,6 +24,8 @@ class AldesIBus : public Component, public uart::UARTDevice {
   void set_rx_bytes_sensor(sensor::Sensor *s) { rx_bytes_sensor_ = s; }
   void set_raw_rx_sensor(text_sensor::TextSensor *s) { raw_rx_sensor_ = s; }
   void set_last_frame_sensor(text_sensor::TextSensor *s) { last_frame_sensor_ = s; }
+  void set_co2_sensor(sensor::Sensor *s) { co2_sensor_ = s; }
+  void set_varhr_sensor(sensor::Sensor *s) { varhr_sensor_ = s; }
   void dump_config() override;
  protected:
   std::vector<uint8_t> buffer_;
@@ -44,6 +46,8 @@ class AldesIBus : public Component, public uart::UARTDevice {
   sensor::Sensor *rx_bytes_sensor_{nullptr};
   text_sensor::TextSensor *last_frame_sensor_{nullptr};
   text_sensor::TextSensor *raw_rx_sensor_{nullptr};
+  sensor::Sensor *co2_sensor_{nullptr};
+  sensor::Sensor *varhr_sensor_{nullptr};
   uint32_t frames_ok_{0};
   uint32_t checksum_bad_{0};
   uint32_t sync_errors_{0};
