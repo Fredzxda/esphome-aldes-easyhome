@@ -182,6 +182,43 @@ output:
     id: ibus_wifi_led
     pin: GPIO27
 
+# User controls in Home Assistant (not diagnostic entities).
+switch:
+  - platform: template
+    id: ibus_night_enabled
+    name: "Mode nuit LEDs"
+    icon: mdi:weather-night
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    turn_on_action:
+      - script.execute: ibus_update_led_night_mode
+    turn_off_action:
+      - script.execute: ibus_update_led_night_mode
+
+datetime:
+  - platform: template
+    id: ibus_night_start
+    type: time
+    name: "Début mode nuit LEDs"
+    icon: mdi:clock-start
+    optimistic: true
+    restore_value: true
+    initial_value: "23:00:00"
+    on_value:
+      then:
+        - script.execute: ibus_update_led_night_mode
+  - platform: template
+    id: ibus_night_end
+    type: time
+    name: "Fin mode nuit LEDs"
+    icon: mdi:clock-end
+    optimistic: true
+    restore_value: true
+    initial_value: "07:00:00"
+    on_value:
+      then:
+        - script.execute: ibus_update_led_night_mode
+
 time:
   - platform: homeassistant
     id: ibus_local_time
@@ -213,12 +250,16 @@ script:
     then:
       - lambda: |-
           auto now = id(ibus_local_time).now();
-          if (!now.is_valid()) { id(ibus_night_mode) = false; return; }
-          const int hour = now.hour;
-          const int start = ${led_night_start_hour};
-          const int end = ${led_night_end_hour};
-          id(ibus_night_mode) = start < end ? (hour >= start && hour < end)
-                                : start > end ? (hour >= start || hour < end) : false;
+          if (!id(ibus_night_enabled).state || !now.is_valid()) {
+            id(ibus_night_mode) = false;
+            return;
+          }
+          const int minute_now = now.hour * 60 + now.minute;
+          const int start = id(ibus_night_start).hour * 60 + id(ibus_night_start).minute;
+          const int end = id(ibus_night_end).hour * 60 + id(ibus_night_end).minute;
+          id(ibus_night_mode) = start < end ? (minute_now >= start && minute_now < end)
+                                : start > end ? (minute_now >= start || minute_now < end)
+                                              : false;
       - if:
           condition:
             lambda: 'return id(ibus_night_mode);'
