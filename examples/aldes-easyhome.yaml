@@ -6,8 +6,6 @@ substitutions:
   piece_1: Cuisine
   piece_2: Baignoire
   piece_3: Douche
-  # iBUS pins are configured in packages/easyhome.yaml:
-  # RX GPIO3 (via R7 on Quentin's PCB), TX GPIO1 (inverted).
 
 esphome:
   name: ${device_name}
