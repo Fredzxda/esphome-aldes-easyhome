@@ -11,18 +11,23 @@ external_components:
     refresh: always
 
 uart:
-  id: easyhome_uart
-  tx_pin:
-    number: GPIO1
-    inverted: true
-  rx_pin:
-    number: GPIO3
-    inverted: false
-  baud_rate: 2400
-  data_bits: 8
-  parity: EVEN
-  stop_bits: 1
-  rx_buffer_size: 1024
+  # Reserve UART0 without using the iBUS pins; ESPHome assigns UARTs in declaration order.
+  - id: uart_reserve
+    tx_pin: GPIO25
+    baud_rate: 9600
+
+  - id: easyhome_uart
+    tx_pin:
+      number: GPIO1
+      inverted: true
+    rx_pin:
+      number: GPIO3
+      inverted: false
+    baud_rate: 2400
+    data_bits: 8
+    parity: EVEN
+    stop_bits: 1
+    rx_buffer_size: 1024
 
 aldes_ibus:
   id: easyhome_ibus
