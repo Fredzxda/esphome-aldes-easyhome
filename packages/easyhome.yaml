@@ -63,7 +63,10 @@ aldes_ibus:
   varhr:
     id: ibus_varhr
     name: "Variation humidite"
-    entity_category: diagnostic
+  pwm1:
+    name: "PWM QAI 1 (brut)"
+  pwm2:
+    name: "PWM QAI 2 (brut)"
 
 # Requested-mode selector: mirrors ESP32 persisted/queued mode, not confirmed VMC feedback.
 select:
@@ -102,6 +105,11 @@ button:
 
 # Experimental QAI model: maximum of humidity variation and CO2 contribution.
 sensor:
+  - platform: copy
+    source_id: ibus_varhr
+    name: "QAI Humidite"
+    accuracy_decimals: 0
+
   - platform: template
     id: ibus_qai_co2
     name: "QAI contribution CO2"
