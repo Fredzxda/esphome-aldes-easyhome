@@ -1,7 +1,7 @@
 # Development package. Import from GitHub with packages:
 #   easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@dev/ibus-rx
 #
-# Manual polling test: inverted TX GPIO1, RX GPIO3.
+# Manual Boost TX test: inverted TX GPIO1, RX GPIO3.
 external_components:
   - source:
       type: git
@@ -47,7 +47,7 @@ aldes_ibus:
 
 button:
   - platform: template
-    name: "iBUS Interroger VMC"
+    name: "iBUS Envoyer Boost VMC"
     entity_category: diagnostic
     on_press:
-      - lambda: 'id(easyhome_ibus).send_poll();'
+      - lambda: 'id(easyhome_ibus).send_boost();'
