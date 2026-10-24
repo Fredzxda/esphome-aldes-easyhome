@@ -97,7 +97,7 @@ sensor:
     update_interval: 10s
     lambda: |-
       if (!id(ibus_co2).has_state() || !id(ibus_varhr).has_state()) return NAN;
-      return std::max(id(ibus_varhr).state, 0.065f * id(ibus_co2).state - 28.0f);
+      return std::min(100.0f, std::max(0.0f, std::max(id(ibus_varhr).state, 0.065f * id(ibus_co2).state - 28.0f)));
 
 text_sensor:
   - platform: template
