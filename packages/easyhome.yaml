@@ -41,6 +41,8 @@ aldes_ibus:
     name: "iBUS RX brut hex"
   last_frame:
     name: "iBUS Derniere trame VMC"
+  last_long_frame:
+    name: "iBUS Derniere trame longue VMC"
   frames_ok:
     name: "iBUS Trames valides"
   checksum_bad:
