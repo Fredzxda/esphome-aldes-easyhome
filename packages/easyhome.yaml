@@ -2,6 +2,7 @@
 #   easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@dev/ibus-rx
 #
 # Manual Boost TX test: inverted TX GPIO1, RX GPIO3.
+# Optional room labels supplied by the consuming YAML: piece_1, piece_2, piece_3.
 external_components:
   - source:
       type: git
