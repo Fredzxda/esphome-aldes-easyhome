@@ -135,10 +135,10 @@ GPL-3.0 — voir [LICENSE](LICENSE).
 
 La branche `dev/led_management` ajoute :
 
-- Un capteur de diagnostic Home Assistant **Version firmware Aldes**, indiquant la valeur `firmware_version` compilée dans l'ESP32 (valeur de développement par défaut : `1.0.1-dev`). La valeur **ne se met pas à jour à distance** : elle change après compilation et installation d'un nouveau firmware.
+- Un capteur de diagnostic Home Assistant **Version firmware Aldes**, indiquant la version définie dans le package GitHub et compilée dans l'ESP32 (actuellement `1.0.1-dev` sur cette branche). La valeur **ne se met pas à jour à distance** : elle change après compilation et installation d'un nouveau firmware.
 - Trois contrôles Home Assistant : **Mode nuit LEDs** (interrupteur désactivé par défaut), **Début mode nuit LEDs** (23:00 par défaut) et **Fin mode nuit LEDs** (07:00 par défaut). Les deux horaires sont réglables à la minute et conservés après redémarrage. Les LEDs sont éteintes uniquement si le mode nuit est activé et si l'heure Home Assistant est dans la plage configurée. Si l'heure n'est pas disponible, elles restent autorisées.
 - GPIO25 réservé à la LED d'alimentation, GPIO26 à l'activité RX, GPIO27 à l'état Wi-Fi/API. La réservation UART secondaire passe sur GPIO32. Vérifier la polarité et le comportement réel de la LED GPIO25 sur le PCB avant validation.
 
-**Important :** l'association automatique du numéro de version aux tags GitHub nécessite une étape de publication supplémentaire (workflow GitHub Actions et génération de la configuration avant compilation). Le capteur actuel reflète la version déclarée dans le YAML et ne lit pas les tags GitHub en temps réel.
+**Important :** l'association automatique du numéro de version aux tags GitHub nécessite une étape de publication supplémentaire (workflow GitHub Actions et génération de la configuration avant compilation). Le capteur actuel reflète une valeur définie dans le package GitHub, et non dans le YAML personnel de l'utilisateur. Cette valeur reste à synchroniser automatiquement avec les tags lors du processus de publication ; elle ne lit pas les tags GitHub en temps réel.
 
 Pour tester la branche, importer `packages/easyhome.yaml@dev/led_management` et son exemple associé. La branche `main` et les tags publiés ne sont pas modifiés.
