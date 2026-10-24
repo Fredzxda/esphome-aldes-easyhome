@@ -107,6 +107,8 @@ sensor:
     name: "QAI contribution CO2"
     accuracy_decimals: 1
     entity_category: diagnostic
+    filters:
+      - lambda: return roundf(x * 10.0f) / 10.0f;
     update_interval: 10s
     lambda: |-
       if (!id(ibus_co2).has_state()) return NAN;
@@ -116,6 +118,8 @@ sensor:
     id: ibus_qai_index
     name: "QAI Index estime"
     accuracy_decimals: 1
+    filters:
+      - lambda: return roundf(x * 10.0f) / 10.0f;
     update_interval: 10s
     lambda: |-
       if (!id(ibus_co2).has_state() || !id(ibus_varhr).has_state()) return NAN;
