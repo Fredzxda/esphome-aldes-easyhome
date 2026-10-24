@@ -194,22 +194,16 @@ void AldesIBus::parse_() {
         if (this->co2_sensor_) this->co2_sensor_->publish_state(co2);
         if (this->varhr_sensor_) this->varhr_sensor_->publish_state(varhr);
         // Standard frame byte positions 15-20 (one-based):
-        // temperature encoded as BCD plus quarter degrees, humidity as integer percent.
+        // temperature encoded with -6 C offset plus quarter degrees, humidity as integer percent.
         for (size_t room = 0; room < 3; ++room) {
           const size_t offset = 14 + room * 2;
           if (this->room_sensors_[room * 2]) {
-            // EasyHome temperature: upper six bits are BCD integer,
-            // lower two bits represent quarters of a degree.
+            // Temperature: six-bit integer with -6 C offset;
+            // low two bits encode 0.25 C increments.
             const uint8_t encoded = this->buffer_[offset];
-            const uint8_t bcd = encoded >> 2;
-            const uint8_t tens = (bcd >> 4) & 0x0F;
-            const uint8_t units = bcd & 0x0F;
-            if (tens <= 9 && units <= 9) {
-              const float temperature = tens * 10.0f + units + (encoded & 0x03) * 0.25f;
-              this->room_sensors_[room * 2]->publish_state(temperature);
-            } else {
-              ESP_LOGW(TAG, "Invalid BCD temperature byte: 0x%02X", encoded);
-            }
+            const float temperature = float(encoded >> 2) - 6.0f +
+                                      float(encoded & 0x03) * 0.25f;
+            this->room_sensors_[room * 2]->publish_state(temperature);
           }
           if (this->room_sensors_[room * 2 + 1])
             this->room_sensors_[room * 2 + 1]->publish_state(this->buffer_[offset + 1]);
