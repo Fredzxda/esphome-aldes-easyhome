@@ -20,6 +20,8 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional("last_frame"): text_sensor.text_sensor_schema(entity_category="diagnostic"),
     cv.Optional("co2"): sensor.sensor_schema(unit_of_measurement="ppm", accuracy_decimals=0, device_class="carbon_dioxide"),
     cv.Optional("varhr"): sensor.sensor_schema(accuracy_decimals=0),
+    cv.Optional("pwm1"): sensor.sensor_schema(accuracy_decimals=0),
+    cv.Optional("pwm2"): sensor.sensor_schema(accuracy_decimals=0),
     cv.Optional("temperature_1"): sensor.sensor_schema(unit_of_measurement="°C", accuracy_decimals=1, device_class="temperature"),
     cv.Optional("humidity_1"): sensor.sensor_schema(unit_of_measurement="%", accuracy_decimals=0, device_class="humidity"),
     cv.Optional("temperature_2"): sensor.sensor_schema(unit_of_measurement="°C", accuracy_decimals=1, device_class="temperature"),
@@ -53,6 +55,10 @@ async def to_code(config):
         if key in config:
             s = await sensor.new_sensor(config[key])
             cg.add(var.set_room_sensor(index, s))
+    for key, setter in (("pwm1", "set_pwm1_sensor"), ("pwm2", "set_pwm2_sensor")):
+        if key in config:
+            s = await sensor.new_sensor(config[key])
+            cg.add(getattr(var, setter)(s))
     if "raw_rx" in config:
         s = await text_sensor.new_text_sensor(config["raw_rx"])
         cg.add(var.set_raw_rx_sensor(s))
