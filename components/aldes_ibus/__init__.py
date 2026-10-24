@@ -1,10 +1,10 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import uart, sensor, text_sensor
+from esphome.components import uart, sensor, text_sensor, binary_sensor, output
 from esphome.const import CONF_ID
 
 DEPENDENCIES = ["uart"]
-AUTO_LOAD = ["sensor", "text_sensor"]
+AUTO_LOAD = ["sensor", "text_sensor", "binary_sensor"]
 MULTI_CONF = False
 
 aldes_ibus_ns = cg.esphome_ns.namespace("aldes_ibus")
@@ -12,6 +12,8 @@ AldesIBus = aldes_ibus_ns.class_("AldesIBus", cg.Component, uart.UARTDevice)
 
 CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(AldesIBus),
+    cv.Optional("rx_led"): cv.use_id(output.BinaryOutput),
+    cv.Optional("connected"): binary_sensor.binary_sensor_schema(device_class="connectivity"),
     cv.Optional("frames_ok"): sensor.sensor_schema(accuracy_decimals=0, entity_category="diagnostic"),
     cv.Optional("checksum_bad"): sensor.sensor_schema(accuracy_decimals=0, entity_category="diagnostic"),
     cv.Optional("sync_errors"): sensor.sensor_schema(accuracy_decimals=0, entity_category="diagnostic"),
@@ -43,6 +45,12 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     await uart.register_uart_device(var, config)
+    if "rx_led" in config:
+        led = await cg.get_variable(config["rx_led"])
+        cg.add(var.set_rx_led(led))
+    if "connected" in config:
+        connected = await binary_sensor.new_binary_sensor(config["connected"])
+        cg.add(var.set_connected_sensor(connected))
     for key, setter in (("frames_ok", "set_frames_ok_sensor"), ("checksum_bad", "set_checksum_bad_sensor"), ("sync_errors", "set_sync_errors_sensor"), ("rx_bytes", "set_rx_bytes_sensor")):
         if key in config:
             s = await sensor.new_sensor(config[key])
