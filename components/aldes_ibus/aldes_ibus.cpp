@@ -12,6 +12,7 @@ namespace aldes_ibus {
 static const char *const TAG = "aldes_ibus";
 static constexpr size_t MAX_BUFFER = 1024;
 static constexpr uint32_t FRAME_TIMEOUT_MS = 500;
+static constexpr uint32_t MODE_POLL_INTERVAL_MS = 10000;
 
 void AldesIBus::dump_config() {
   ESP_LOGCONFIG(TAG, "Aldes iBUS receiver (manual poll)");
@@ -86,6 +87,13 @@ void AldesIBus::loop() {
     ESP_LOGW(TAG, "Receive buffer overflow");
   }
   this->parse_();
+  // Queue a refresh of the last successfully transmitted mode every 10 s.
+  // No mode is sent after boot until the user selects one explicitly.
+  if (!this->mode_pending_ && this->has_sent_mode_ &&
+      millis() - this->last_tx_ms_ >= MODE_POLL_INTERVAL_MS) {
+    this->pending_mode_ = this->last_sent_mode_;
+    this->mode_pending_ = true;
+  }
   // Transmit only when the UART has no unread data and the bus has been
   // quiet for at least 250 ms. A pending partial frame blocks TX.
   // This is an idle-gap heuristic, not physical bus arbitration.
@@ -102,6 +110,8 @@ void AldesIBus::loop() {
     this->write_array(frame, sizeof(frame));
     this->flush();
     this->last_tx_ms_ = millis();
+    this->last_sent_mode_ = frame[8];
+    this->has_sent_mode_ = true;
     ESP_LOGI(TAG, "VMC mode command sent: 0x%02X, checksum 0x%02X",
              frame[8], frame[17]);
   }
