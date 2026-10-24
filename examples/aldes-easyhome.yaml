@@ -2,8 +2,12 @@
 substitutions:
   device_name: aldes-easyhome
   friendly_name: Aldes EasyHome
-  ibus_rx_pin: GPIO3  # ESP32 pin labelled RX (U0RXD), connected to R7 on Quentin's PCB
-  ibus_rx_inverted: "false"  # Change to "true" to test inverted reception
+  # Adaptez les noms des trois bouches / pièces à votre installation.
+  piece_1: Cuisine
+  piece_2: Baignoire
+  piece_3: Douche
+  # iBUS pins are configured in packages/easyhome.yaml:
+  # RX GPIO3 (via R7 on Quentin's PCB), TX GPIO1 (inverted).
 
 esphome:
   name: ${device_name}
