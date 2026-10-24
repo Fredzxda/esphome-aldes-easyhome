@@ -45,6 +45,18 @@ aldes_ibus:
     name: "iBUS Erreurs de synchronisation"
   rx_bytes:
     name: "iBUS Octets recus"
+  temperature_1:
+    name: "Température ${piece_1}"
+  humidity_1:
+    name: "Humidité ${piece_1}"
+  temperature_2:
+    name: "Température ${piece_2}"
+  humidity_2:
+    name: "Humidité ${piece_2}"
+  temperature_3:
+    name: "Température ${piece_3}"
+  humidity_3:
+    name: "Humidité ${piece_3}"
   co2:
     id: ibus_co2
     name: "CO2"
