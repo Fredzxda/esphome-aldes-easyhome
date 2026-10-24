@@ -193,6 +193,12 @@ void AldesIBus::parse_() {
         const uint8_t varhr = this->buffer_[23];
         if (this->co2_sensor_) this->co2_sensor_->publish_state(co2);
         if (this->varhr_sensor_) this->varhr_sensor_->publish_state(varhr);
+        const uint16_t pwm1 = uint16_t(this->buffer_[8]) |
+                              (uint16_t(this->buffer_[9]) << 8);
+        const uint16_t pwm2 = uint16_t(this->buffer_[24]) |
+                              (uint16_t(this->buffer_[25]) << 8);
+        if (this->pwm1_sensor_) this->pwm1_sensor_->publish_state(pwm1);
+        if (this->pwm2_sensor_) this->pwm2_sensor_->publish_state(pwm2);
         // Standard frame byte positions 15-20 (one-based):
         // temperature encoded with -6 C offset plus quarter degrees, humidity as integer percent.
         for (size_t room = 0; room < 3; ++room) {
