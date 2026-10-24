@@ -14,6 +14,7 @@ class AldesIBus : public Component, public uart::UARTDevice {
  public:
   void setup() override;
   void loop() override;
+  void send_poll();
   void set_frames_ok_sensor(sensor::Sensor *s) { frames_ok_sensor_ = s; }
   void set_checksum_bad_sensor(sensor::Sensor *s) { checksum_bad_sensor_ = s; }
   void set_sync_errors_sensor(sensor::Sensor *s) { sync_errors_sensor_ = s; }
