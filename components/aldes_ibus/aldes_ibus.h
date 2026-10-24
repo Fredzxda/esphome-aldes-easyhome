@@ -27,6 +27,7 @@ class AldesIBus : public Component, public uart::UARTDevice {
   void set_rx_bytes_sensor(sensor::Sensor *s) { rx_bytes_sensor_ = s; }
   void set_raw_rx_sensor(text_sensor::TextSensor *s) { raw_rx_sensor_ = s; }
   void set_last_frame_sensor(text_sensor::TextSensor *s) { last_frame_sensor_ = s; }
+  void set_last_long_frame_sensor(text_sensor::TextSensor *s) { last_long_frame_sensor_ = s; }
   void set_co2_sensor(sensor::Sensor *s) { co2_sensor_ = s; }
   void set_varhr_sensor(sensor::Sensor *s) { varhr_sensor_ = s; }
   void set_room_sensor(size_t index, sensor::Sensor *s) { if (index < 6) room_sensors_[index] = s; }
@@ -62,6 +63,7 @@ class AldesIBus : public Component, public uart::UARTDevice {
   sensor::Sensor *sync_errors_sensor_{nullptr};
   sensor::Sensor *rx_bytes_sensor_{nullptr};
   text_sensor::TextSensor *last_frame_sensor_{nullptr};
+  text_sensor::TextSensor *last_long_frame_sensor_{nullptr};
   text_sensor::TextSensor *raw_rx_sensor_{nullptr};
   sensor::Sensor *co2_sensor_{nullptr};
   sensor::Sensor *varhr_sensor_{nullptr};
