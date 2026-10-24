@@ -190,9 +190,9 @@ switch:
     icon: mdi:weather-night
     optimistic: true
     restore_mode: RESTORE_DEFAULT_OFF
-    turn_on_action:
+    on_turn_on:
       - script.execute: ibus_update_led_night_mode
-    turn_off_action:
+    on_turn_off:
       - script.execute: ibus_update_led_night_mode
 
 datetime:
