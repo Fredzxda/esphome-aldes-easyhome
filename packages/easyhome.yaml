@@ -50,7 +50,6 @@ select:
   - platform: template
     name: "iBUS Mode VMC"
     id: ibus_mode_vmc
-    entity_category: config
     optimistic: true
     options:
       - "Programmation"
@@ -65,3 +64,9 @@ select:
           else if (x == "Quotidien") id(easyhome_ibus).queue_mode(0x43);
           else if (x == "Boost") id(easyhome_ibus).queue_mode(0x65);
           else if (x == "Invites") id(easyhome_ibus).queue_mode(0x87);
+
+# Maintenance action displayed under Home Assistant Diagnostics.
+button:
+  - platform: restart
+    name: "Redemarrer Aldes EasyHome"
+    entity_category: diagnostic
