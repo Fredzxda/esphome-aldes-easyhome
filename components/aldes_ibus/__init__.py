@@ -18,6 +18,8 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional("rx_bytes"): sensor.sensor_schema(accuracy_decimals=0, entity_category="diagnostic"),
     cv.Optional("raw_rx"): text_sensor.text_sensor_schema(entity_category="diagnostic"),
     cv.Optional("last_frame"): text_sensor.text_sensor_schema(entity_category="diagnostic"),
+    cv.Optional("co2"): sensor.sensor_schema(unit_of_measurement="ppm", accuracy_decimals=0, device_class="carbon_dioxide"),
+    cv.Optional("varhr"): sensor.sensor_schema(accuracy_decimals=0),
 }).extend(cv.COMPONENT_SCHEMA).extend(uart.UART_DEVICE_SCHEMA)
 
 FINAL_VALIDATE_SCHEMA = uart.final_validate_device_schema(
@@ -34,6 +36,10 @@ async def to_code(config):
     await cg.register_component(var, config)
     await uart.register_uart_device(var, config)
     for key, setter in (("frames_ok", "set_frames_ok_sensor"), ("checksum_bad", "set_checksum_bad_sensor"), ("sync_errors", "set_sync_errors_sensor"), ("rx_bytes", "set_rx_bytes_sensor")):
+        if key in config:
+            s = await sensor.new_sensor(config[key])
+            cg.add(getattr(var, setter)(s))
+    for key, setter in (("co2", "set_co2_sensor"), ("varhr", "set_varhr_sensor")):
         if key in config:
             s = await sensor.new_sensor(config[key])
             cg.add(getattr(var, setter)(s))
