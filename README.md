@@ -2,7 +2,7 @@
 
 Intégration **locale** d'une VMC **Aldes EasyHOME PureAIR Premium / Connect** dans **Home Assistant** avec **ESPHome**, sans AldesConnect Box ni cloud Aldes.
 
-> **Projet expérimental — branche `dev/ibus-rx`.** Réception des trames iBUS, remontée de mesures et envoi périodique de commandes de mode sont implémentés, mais le pilotage et le décodage restent en cours de validation. Ce projet n'est pas une intégration officielle Aldes.
+> **Version 1.0.0 — première version expérimentale.** Réception des trames iBUS, remontée de mesures et envoi périodique de commandes de mode sont implémentés, mais le pilotage et le décodage restent en cours de validation. Ce projet n'est pas une intégration officielle Aldes.
 
 ## Origine du projet et montage électronique
 
@@ -59,7 +59,7 @@ Le fichier d'exemple complet configure également `esp32dev`, l'API native Home 
 
 ```yaml
 packages:
-  easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@dev/ibus-rx
+  easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@main
 ```
 
 Les identifiants Wi-Fi et la clé API restent **dans la configuration ESPHome locale**, jamais dans ce dépôt public. L'exemple désactive les logs série UART0 (`logger: baud_rate: 0`) car ses broches servent au bus.
@@ -84,8 +84,48 @@ Les identifiants Wi-Fi et la clé API restent **dans la configuration ESPHome lo
 
 ## Branches
 
-- `main` : branche principale ; ne pas supposer qu'elle inclut les dernières fonctions.
-- `dev/ibus-rx` : branche de développement utilisée dans ce guide, avec réception, diagnostics et émission expérimentale de commandes.
+- `main` : version publiée **1.0.0**.
+- `dev/ibus-rx` : branche de développement pour les évolutions futures.
+
+## Version 1.0.0 — inventaire des entités
+
+### Pilotage
+
+- Sélecteur **iBUS Mode VMC** : Programmation, Vacances, Quotidien, Boost, Invités. La commande est transmise sur iBUS et répétée périodiquement ; l'état affiché est le mode demandé, **pas une confirmation de la VMC**.
+- Bouton de diagnostic **Redemarrer Aldes EasyHome** : redémarre l'ESP32.
+
+### Capteurs des trois pièces
+
+Les noms des pièces sont définis par `piece_1`, `piece_2` et `piece_3` dans le fichier YAML de l'utilisateur :
+
+- **Température** et **Humidité** pour chacune des trois pièces (six entités).
+
+### Qualité de l'air et régulation
+
+- **CO2** (ppm).
+- **Variation humidite**.
+- **PWM QAI 1 (brut)** et **PWM QAI 2 (brut)**.
+- **QAI Humidite** (diagnostic, reprise de la variation d'humidité).
+- **QAI contribution CO2** (diagnostic, valeur estimée).
+- **QAI Index** (estimation bornée entre 0 et 100, non certifiée par Aldes).
+- **Polluant dominant** (texte, comparaison des contributions humidité / CO₂).
+
+### Diagnostics iBUS
+
+- **iBUS Connecté** (état de réception de trames valides).
+- **iBUS RX brut hex** (dernière réponse VMC valide, sans écho TX).
+- **iBUS Derniere trame VMC** (dernière trame valide).
+- **iBUS Derniere trame longue VMC** (dernière trame valide de 54 octets).
+- **iBUS Trames valides**, **iBUS Checksums invalides**, **iBUS Erreurs de synchronisation**, **iBUS Octets recus** (compteurs).
+
+### Autres fonctions
+
+- Décodage des trames de 28 et 54 octets avec contrôle du checksum ; interface UART iBUS 2400 bauds 8E1.
+- LEDs GPIO26 (activité RX) et GPIO27 (état Wi-Fi / API).
+- Connexion Home Assistant native via ESPHome, Wi-Fi et mise à jour OTA.
+- Mémorisation du mode demandé sur l'ESP32 après redémarrage.
+
+**Limites v1.0.0 :** décodage de certains octets des trames longues incomplet ; calcul QAI expérimental ; compatibilité testée principalement avec la carte Aldes Himalaya01M1b et le montage de Quentin ; absence de retour d'acquittement fiable du mode VMC. Vérifiez les commandes sur votre propre installation avant tout usage non supervisé.
 
 ## Licence
 
