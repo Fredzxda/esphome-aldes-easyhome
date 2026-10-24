@@ -193,6 +193,15 @@ void AldesIBus::parse_() {
         const uint8_t varhr = this->buffer_[23];
         if (this->co2_sensor_) this->co2_sensor_->publish_state(co2);
         if (this->varhr_sensor_) this->varhr_sensor_->publish_state(varhr);
+        // Standard frame byte positions 15-20 (one-based):
+        // temperature in 0.2 C increments, humidity as integer percent.
+        for (size_t room = 0; room < 3; ++room) {
+          const size_t offset = 14 + room * 2;
+          if (this->room_sensors_[room * 2])
+            this->room_sensors_[room * 2]->publish_state(this->buffer_[offset] / 5.0f);
+          if (this->room_sensors_[room * 2 + 1])
+            this->room_sensors_[room * 2 + 1]->publish_state(this->buffer_[offset + 1]);
+        }
       }
       ESP_LOGI(TAG, "VMC frame (%u bytes): %s", (unsigned) size, hex.c_str());
       if (this->last_frame_sensor_) {
