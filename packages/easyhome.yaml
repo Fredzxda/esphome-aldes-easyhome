@@ -45,9 +45,23 @@ aldes_ibus:
   rx_bytes:
     name: "iBUS Octets recus"
 
-button:
+# Command selector. State is optimistic until VMC status feedback is wired in.
+select:
   - platform: template
-    name: "iBUS Envoyer Boost VMC"
-    entity_category: diagnostic
-    on_press:
-      - lambda: 'id(easyhome_ibus).send_boost();'
+    name: "iBUS Mode VMC"
+    id: ibus_mode_vmc
+    entity_category: config
+    optimistic: true
+    options:
+      - "Programmation"
+      - "Vacances"
+      - "Quotidien"
+      - "Boost"
+      - "Invites"
+    set_action:
+      - lambda: |-
+          if (x == "Programmation") id(easyhome_ibus).queue_mode(0x10);
+          else if (x == "Vacances") id(easyhome_ibus).queue_mode(0x21);
+          else if (x == "Quotidien") id(easyhome_ibus).queue_mode(0x43);
+          else if (x == "Boost") id(easyhome_ibus).queue_mode(0x65);
+          else if (x == "Invites") id(easyhome_ibus).queue_mode(0x87);
