@@ -129,3 +129,16 @@ Les noms des pièces sont définis par `piece_1`, `piece_2` et `piece_3` dans le
 ## Licence
 
 GPL-3.0 — voir [LICENSE](LICENSE).
+
+
+## Développement : gestion des LEDs et version du firmware
+
+La branche `dev/led_management` ajoute :
+
+- Un capteur de diagnostic Home Assistant **Version firmware Aldes**, indiquant la valeur `firmware_version` compilée dans l'ESP32 (valeur de développement par défaut : `1.0.1-dev`). La valeur **ne se met pas à jour à distance** : elle change après compilation et installation d'un nouveau firmware.
+- Une plage horaire d'extinction des LEDs, configurable avec `led_night_start_hour` et `led_night_end_hour` (heures entières, 0 à 23 ; exemple 22 à 7). La synchronisation horaire provient de Home Assistant. Si l'heure n'est pas disponible, les LEDs restent autorisées pour faciliter le diagnostic.
+- GPIO25 réservé à la LED d'alimentation, GPIO26 à l'activité RX, GPIO27 à l'état Wi-Fi/API. La réservation UART secondaire passe sur GPIO32. Vérifier la polarité et le comportement réel de la LED GPIO25 sur le PCB avant validation.
+
+**Important :** l'association automatique du numéro de version aux tags GitHub nécessite une étape de publication supplémentaire (workflow GitHub Actions et génération de la configuration avant compilation). Le capteur actuel reflète la version déclarée dans le YAML et ne lit pas les tags GitHub en temps réel.
+
+Pour tester la branche, importer `packages/easyhome.yaml@dev/led_management` et son exemple associé. La branche `main` et les tags publiés ne sont pas modifiés.
