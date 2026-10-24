@@ -44,6 +44,13 @@ aldes_ibus:
     name: "iBUS Erreurs de synchronisation"
   rx_bytes:
     name: "iBUS Octets recus"
+  co2:
+    id: ibus_co2
+    name: "CO2"
+  varhr:
+    id: ibus_varhr
+    name: "Variation humidite"
+    entity_category: diagnostic
 
 # Command selector. State is optimistic until VMC status feedback is wired in.
 select:
@@ -70,3 +77,34 @@ button:
   - platform: restart
     name: "Redemarrer Aldes EasyHome"
     entity_category: diagnostic
+
+# Experimental QAI model: maximum of humidity variation and CO2 contribution.
+sensor:
+  - platform: template
+    id: ibus_qai_co2
+    name: "QAI contribution CO2"
+    accuracy_decimals: 1
+    entity_category: diagnostic
+    update_interval: 10s
+    lambda: |-
+      if (!id(ibus_co2).has_state()) return NAN;
+      return 0.065f * id(ibus_co2).state - 28.0f;
+
+  - platform: template
+    id: ibus_qai_index
+    name: "QAI Index estime"
+    accuracy_decimals: 1
+    update_interval: 10s
+    lambda: |-
+      if (!id(ibus_co2).has_state() || !id(ibus_varhr).has_state()) return NAN;
+      return std::max(id(ibus_varhr).state, 0.065f * id(ibus_co2).state - 28.0f);
+
+text_sensor:
+  - platform: template
+    name: "Polluant dominant"
+    update_interval: 10s
+    lambda: |-
+      if (!id(ibus_co2).has_state() || !id(ibus_varhr).has_state())
+        return {};
+      const float qai_co2 = 0.065f * id(ibus_co2).state - 28.0f;
+      return std::string(id(ibus_varhr).state >= qai_co2 ? "Humidité" : "CO2");
