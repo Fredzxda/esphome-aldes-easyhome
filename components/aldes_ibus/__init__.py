@@ -20,6 +20,12 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional("last_frame"): text_sensor.text_sensor_schema(entity_category="diagnostic"),
     cv.Optional("co2"): sensor.sensor_schema(unit_of_measurement="ppm", accuracy_decimals=0, device_class="carbon_dioxide"),
     cv.Optional("varhr"): sensor.sensor_schema(accuracy_decimals=0),
+    cv.Optional("temperature_1"): sensor.sensor_schema(unit_of_measurement="°C", accuracy_decimals=1, device_class="temperature"),
+    cv.Optional("humidity_1"): sensor.sensor_schema(unit_of_measurement="%", accuracy_decimals=0, device_class="humidity"),
+    cv.Optional("temperature_2"): sensor.sensor_schema(unit_of_measurement="°C", accuracy_decimals=1, device_class="temperature"),
+    cv.Optional("humidity_2"): sensor.sensor_schema(unit_of_measurement="%", accuracy_decimals=0, device_class="humidity"),
+    cv.Optional("temperature_3"): sensor.sensor_schema(unit_of_measurement="°C", accuracy_decimals=1, device_class="temperature"),
+    cv.Optional("humidity_3"): sensor.sensor_schema(unit_of_measurement="%", accuracy_decimals=0, device_class="humidity"),
 }).extend(cv.COMPONENT_SCHEMA).extend(uart.UART_DEVICE_SCHEMA)
 
 FINAL_VALIDATE_SCHEMA = uart.final_validate_device_schema(
@@ -43,6 +49,10 @@ async def to_code(config):
         if key in config:
             s = await sensor.new_sensor(config[key])
             cg.add(getattr(var, setter)(s))
+    for index, key in enumerate(["temperature_1","humidity_1","temperature_2","humidity_2","temperature_3","humidity_3"]):
+        if key in config:
+            s = await sensor.new_sensor(config[key])
+            cg.add(var.set_room_sensor(index, s))
     if "raw_rx" in config:
         s = await text_sensor.new_text_sensor(config["raw_rx"])
         cg.add(var.set_raw_rx_sensor(s))
