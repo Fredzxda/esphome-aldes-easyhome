@@ -82,7 +82,7 @@ void AldesIBus::publish_raw_sample_() {
     snprintf(tmp, sizeof(tmp), "%02X", byte);
     hex += tmp;
   }
-  ESP_LOGI(TAG, "Raw RX sample (%u bytes): %s", (unsigned) this->raw_sample_.size(), hex.c_str());
+  ESP_LOGD(TAG, "Raw RX sample (%u bytes): %s", (unsigned) this->raw_sample_.size(), hex.c_str());
   if (this->raw_rx_sensor_) this->raw_rx_sensor_->publish_state(hex);
   this->raw_sample_.clear();
 }
@@ -127,7 +127,7 @@ void AldesIBus::loop() {
     this->last_tx_ms_ = millis();
     this->last_sent_mode_ = frame[8];
     this->has_sent_mode_ = true;
-    ESP_LOGI(TAG, "VMC mode command sent: 0x%02X, checksum 0x%02X",
+    ESP_LOGD(TAG, "VMC mode command sent: 0x%02X, checksum 0x%02X",
              frame[8], frame[17]);
   }
   if (millis() - this->last_publish_ms_ >= 5000) {
@@ -209,7 +209,7 @@ void AldesIBus::parse_() {
             this->room_sensors_[room * 2 + 1]->publish_state(this->buffer_[offset + 1]);
         }
       }
-      ESP_LOGI(TAG, "VMC frame (%u bytes): %s", (unsigned) size, hex.c_str());
+      ESP_LOGD(TAG, "VMC frame (%u bytes): %s", (unsigned) size, hex.c_str());
       if (this->last_frame_sensor_) {
         // HA states have a 255-character limit.
         this->last_frame_sensor_->publish_state(hex.substr(0, 240));
