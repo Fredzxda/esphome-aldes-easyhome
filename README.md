@@ -6,7 +6,7 @@ Intégration **locale** d'une VMC **Aldes EasyHOME PureAIR Premium / Connect** d
 
 ## Origine du projet et montage électronique
 
-Ce projet s'appuie sur les travaux de **Quentin57520**, **yanoooou** et des contributeurs du forum Home Assistant Communauté Francophone (HACF) :
+Ce projet s'appuie sur les travaux de **Quentin57520**, **yanoooou**, **moi-même** et des contributeurs du forum Home Assistant Communauté Francophone (HACF) :
 
 - [Discussion HACF : VMC Aldes EasyHOME PureAIR Premium → Aldes PureFlow MQTT](https://forum.hacf.fr/t/vmc-aldes-easyhome-pureair-premium-aldes-pureflow-mqtt/68269)
 - [Échanges sur le PCB ESP32 réalisé par Quentin (page 10)](https://forum.hacf.fr/t/vmc-aldes-easyhome-pureair-premium-aldes-pureflow-mqtt/68269?page=10)
