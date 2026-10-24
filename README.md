@@ -2,7 +2,7 @@
 
 Intégration **locale** d'une VMC **Aldes EasyHOME PureAIR Premium / Connect** dans **Home Assistant** avec **ESPHome**, sans AldesConnect Box ni cloud Aldes.
 
-> **Version 1.0.0 — première version expérimentale.** Réception des trames iBUS, remontée de mesures et envoi périodique de commandes de mode sont implémentés, mais le pilotage et le décodage restent en cours de validation. Ce projet n'est pas une intégration officielle Aldes.
+> **Version 1.0.0.** Intégration locale de la VMC via iBUS : mesures, diagnostics et commandes de mode depuis Home Assistant. Projet communautaire non officiel, indépendant d'Aldes.
 
 ## Origine du projet et montage électronique
 
@@ -21,7 +21,7 @@ La carte de commande VMC utilisée pour les essais porte le marquage **Aldes Him
 - **Carte d'interface iBUS / PCB de Quentin**, assemblée suivant le schéma et les composants documentés sur le forum HACF.
 - Alimentation **5 V USB adaptée** pour l'ESP32, réseau Wi-Fi 2,4 GHz et instance Home Assistant avec ESPHome.
 
-**Attention :** la carte de commande de la VMC comporte des circuits secteur. Coupez l'alimentation avant toute intervention. Ne raccordez pas le secteur à un montage expérimental ; l'alimentation USB séparée est préférable pour les premiers essais. Le bus iBUS n'est **ni un UART 3,3 V direct, ni du RS485/Modbus**.
+**Attention :** la carte de commande de la VMC comporte des circuits secteur. Coupez l'alimentation avant toute intervention. Ne raccordez pas le secteur à l'interface ESP32 ; l'alimentation USB séparée est préférable pour les premiers essais. Le bus iBUS n'est **ni un UART 3,3 V direct, ni du RS485/Modbus**.
 
 ### Raccordements logiques utilisés par le firmware
 
@@ -62,7 +62,7 @@ packages:
   easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@main
 ```
 
-Les identifiants Wi-Fi et la clé API restent **dans la configuration ESPHome locale**, jamais dans ce dépôt public. L'exemple désactive les logs série UART0 (`logger: baud_rate: 0`) car ses broches servent au bus.
+Les identifiants Wi-Fi et la clé API restent **dans la configuration ESPHome locale**, jamais dans ce dépôt public. L'exemple désactive les logs série UART0 (`logger: baud_rate: 0`) car ses broches servent au bus, et définit **`logger: level: ERROR`** pour n'afficher que les erreurs. Pour un dépannage ponctuel, remplacez `ERROR` par `DEBUG` dans votre YAML local puis recompilez.
 
 ## Fonctionnalités actuelles
 
@@ -74,7 +74,7 @@ Les identifiants Wi-Fi et la clé API restent **dans la configuration ESPHome lo
 - `iBUS Derniere trame VMC` : dernière trame VMC valide, quelle que soit sa longueur.
 - `iBUS Derniere trame longue VMC` : conserve spécifiquement la dernière trame VMC valide de **54 octets**.
 
-**Limite connue :** les champs de la trame longue sont encore étudiés ; certaines mesures QAI sont expérimentales. La transmission de commandes doit être vérifiée sur chaque installation.
+**Limite connue :** les champs de la trame longue sont encore étudiés ; certaines mesures QAI sont des estimations calculées et non des valeurs officielles Aldes. La transmission de commandes doit être vérifiée sur chaque installation.
 
 ## Structure du dépôt
 
@@ -82,10 +82,9 @@ Les identifiants Wi-Fi et la clé API restent **dans la configuration ESPHome lo
 - [`packages/easyhome.yaml`](packages/easyhome.yaml) : configuration commune, entités et UART.
 - [`components/aldes_ibus/`](components/aldes_ibus/) : composant externe ESPHome pour le protocole iBUS.
 
-## Branches
+## Version et branche
 
-- `main` : version publiée **1.0.0**.
-- `dev/ibus-rx` : branche de développement pour les évolutions futures.
+La branche **`main`** contient la version **1.0.0** décrite ici. Les développements futurs sont réalisés séparément sur `dev/ibus-rx`.
 
 ## Version 1.0.0 — inventaire des entités
 
@@ -125,7 +124,7 @@ Les noms des pièces sont définis par `piece_1`, `piece_2` et `piece_3` dans le
 - Connexion Home Assistant native via ESPHome, Wi-Fi et mise à jour OTA.
 - Mémorisation du mode demandé sur l'ESP32 après redémarrage.
 
-**Limites v1.0.0 :** décodage de certains octets des trames longues incomplet ; calcul QAI expérimental ; compatibilité testée principalement avec la carte Aldes Himalaya01M1b et le montage de Quentin ; absence de retour d'acquittement fiable du mode VMC. Vérifiez les commandes sur votre propre installation avant tout usage non supervisé.
+**Points à connaître pour la v1.0.0 :** décodage de certains octets des trames longues incomplet ; calcul QAI estimatif, non validé par Aldes ; compatibilité testée principalement avec la carte Aldes Himalaya01M1b et le montage de Quentin ; absence de retour d'acquittement fiable du mode VMC. Vérifiez les commandes sur votre propre installation avant tout usage non supervisé.
 
 ## Licence
 
