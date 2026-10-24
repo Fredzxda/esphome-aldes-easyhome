@@ -33,6 +33,10 @@ uart:
 aldes_ibus:
   id: easyhome_ibus
   uart_id: easyhome_uart
+  rx_led: ibus_rx_led
+  connected:
+    name: "iBUS Connecté"
+    entity_category: diagnostic
   raw_rx:
     name: "iBUS RX brut hex"
   last_frame:
@@ -146,3 +150,44 @@ text_sensor:
         return {};
       const float qai_co2 = 0.065f * id(ibus_co2).state - 28.0f;
       return std::string(id(ibus_varhr).state >= qai_co2 ? "Humidité" : "CO2");
+
+# GPIO25 remains the reserved UART TX / power LED; do not drive it here.
+output:
+  - platform: gpio
+    id: ibus_rx_led
+    pin: GPIO26
+  - platform: gpio
+    id: ibus_wifi_led
+    pin: GPIO13
+
+globals:
+  - id: ibus_wifi_led_tick
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+
+# Wi-Fi connection: 1 s ON / 1 s OFF.
+# Wi-Fi connected, ESPHome API disconnected: 0.5 s ON / 0.5 s OFF.
+# Both connected: LED OFF.
+interval:
+  - interval: 500ms
+    then:
+      - if:
+          condition:
+            wifi.connected:
+          then:
+            - if:
+                condition:
+                  api.connected:
+                then:
+                  - output.turn_off: ibus_wifi_led
+                else:
+                  - lambda: |-
+                      id(ibus_wifi_led_tick)++;
+                      if (id(ibus_wifi_led_tick) & 1) id(ibus_wifi_led).turn_on();
+                      else id(ibus_wifi_led).turn_off();
+          else:
+            - lambda: |-
+                id(ibus_wifi_led_tick)++;
+                if ((id(ibus_wifi_led_tick) / 2) & 1) id(ibus_wifi_led).turn_on();
+                else id(ibus_wifi_led).turn_off();
