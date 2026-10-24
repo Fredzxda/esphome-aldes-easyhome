@@ -30,6 +30,8 @@ class AldesIBus : public Component, public uart::UARTDevice {
   uint32_t last_tx_ms_{0};
   uint8_t pending_mode_{0};
   bool mode_pending_{false};
+  bool has_sent_mode_{false};
+  uint8_t last_sent_mode_{0};
   uint32_t rx_bytes_{0};
   uint32_t last_publish_ms_{0};
   uint32_t last_raw_publish_ms_{0};
