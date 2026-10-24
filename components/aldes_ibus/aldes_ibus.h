@@ -18,6 +18,7 @@ class AldesIBus : public Component, public uart::UARTDevice {
   void send_poll();
   void send_boost();
   void queue_mode(uint8_t mode);
+  uint8_t get_requested_mode() const { return pending_mode_; }
   void set_frames_ok_sensor(sensor::Sensor *s) { frames_ok_sensor_ = s; }
   void set_checksum_bad_sensor(sensor::Sensor *s) { checksum_bad_sensor_ = s; }
   void set_sync_errors_sensor(sensor::Sensor *s) { sync_errors_sensor_ = s; }
