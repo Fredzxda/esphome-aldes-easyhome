@@ -231,6 +231,10 @@ void AldesIBus::parse_() {
         }
       }
       ESP_LOGD(TAG, "VMC frame (%u bytes): %s", (unsigned) size, hex.c_str());
+      if (size == 54 && this->last_long_frame_sensor_) {
+        // Retain only complete, checksum-valid 54-byte VMC frames.
+        this->last_long_frame_sensor_->publish_state(hex);
+      }
       if (this->last_frame_sensor_) {
         // HA states have a 255-character limit.
         this->last_frame_sensor_->publish_state(hex.substr(0, 240));
