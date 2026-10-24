@@ -124,13 +124,12 @@ void AldesIBus::loop() {
 
 void AldesIBus::parse_() {
   while (!this->buffer_.empty()) {
-    if (this->buffer_[0] != 0x87) {
-      this->buffer_.erase(this->buffer_.begin());
-      this->sync_errors_++;
-      continue;
-    }
+    // Accept both iBUS directions: AldesBox/ESP32 echo FD 87,
+    // and VMC response 87 00. Length is byte 2 + 1 in both.
     if (this->buffer_.size() < 2) break;
-    if (this->buffer_[1] != 0x00) {
+    const bool tx_echo = this->buffer_[0] == 0xFD && this->buffer_[1] == 0x87;
+    const bool vmc_frame = this->buffer_[0] == 0x87 && this->buffer_[1] == 0x00;
+    if (!tx_echo && !vmc_frame) {
       this->buffer_.erase(this->buffer_.begin());
       this->sync_errors_++;
       continue;
@@ -164,12 +163,17 @@ void AldesIBus::parse_() {
       snprintf(tmp, sizeof(tmp), "%02X", this->buffer_[i]);
       hex += tmp;
     }
-    this->frames_ok_++;
-    ESP_LOGI(TAG, "VMC frame (%u bytes): %s", (unsigned) size, hex.c_str());
-    if (this->last_frame_sensor_) {
-      // HA states have a 255-character limit. Publish a short prefix;
-      // the complete frame remains available in ESPHome logs.
-      this->last_frame_sensor_->publish_state(hex.substr(0, 240));
+    if (tx_echo) {
+      // Valid outgoing frame received back through the transceiver.
+      // Do not count it as a VMC reply.
+      ESP_LOGD(TAG, "iBUS TX echo (%u bytes): %s", (unsigned) size, hex.c_str());
+    } else {
+      this->frames_ok_++;
+      ESP_LOGI(TAG, "VMC frame (%u bytes): %s", (unsigned) size, hex.c_str());
+      if (this->last_frame_sensor_) {
+        // HA states have a 255-character limit.
+        this->last_frame_sensor_->publish_state(hex.substr(0, 240));
+      }
     }
     this->buffer_.erase(this->buffer_.begin(), this->buffer_.begin() + size);
   }
