@@ -184,13 +184,13 @@ void AldesIBus::parse_() {
       ESP_LOGD(TAG, "iBUS TX echo (%u bytes): %s", (unsigned) size, hex.c_str());
     } else {
       this->frames_ok_++;
-      // Standard 28-byte VMC status: CO2 at offsets 20-21 (LE),
-      // humidity variation (VarHR) at offset 23.
+      // Standard 28-byte VMC status: CO2 at offsets 21-22 (LE),
+      // humidity variation (VarHR) at offset 24.
       if (size == 28 && this->buffer_[3] == 0x4B &&
           this->buffer_[4] == 0x03 && this->buffer_[5] == 0x01) {
-        const uint16_t co2 = uint16_t(this->buffer_[20]) |
-                             (uint16_t(this->buffer_[21]) << 8);
-        const uint8_t varhr = this->buffer_[23];
+        const uint16_t co2 = uint16_t(this->buffer_[21]) |
+                             (uint16_t(this->buffer_[22]) << 8);
+        const uint8_t varhr = this->buffer_[24];
         if (this->co2_sensor_) this->co2_sensor_->publish_state(co2);
         if (this->varhr_sensor_) this->varhr_sensor_->publish_state(varhr);
       }
