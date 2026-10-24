@@ -6,8 +6,6 @@ substitutions:
   piece_1: Cuisine
   piece_2: Baignoire
   piece_3: Douche
-  led_night_start_hour: '23'
-  led_night_end_hour: '7'
   firmware_version: '1.0.1-dev'
   # iBUS pins are configured in packages/easyhome.yaml:
   # RX GPIO3 (via R7 on Quentin's PCB), TX GPIO1 (inverted).
