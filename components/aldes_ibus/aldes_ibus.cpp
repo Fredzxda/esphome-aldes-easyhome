@@ -18,10 +18,20 @@ void AldesIBus::dump_config() {
 }
 
 void AldesIBus::send_poll() {
+  // Legacy diagnostic poll retained for reference. Not used by the Boost button.
   static const uint8_t poll[] = {0xFD,0x87,0x11,0x4B,0x02,0x02,0x00,0x00,0xFF,0xFF,0x00,0x00,0xFF,0xFF,0xFF,0xFF,0x4A,0x19};
   this->write_array(poll, sizeof(poll));
   this->flush();
-  ESP_LOGI(TAG, "Manual poll sent");
+  ESP_LOGI(TAG, "Legacy manual poll sent (unvalidated)");
+}
+
+void AldesIBus::send_boost() {
+  // Captured from the original AldesBox: mode 0x65 (Boost).
+  // Sum of all 18 bytes, including checksum 0x72, is 0 modulo 256.
+  static const uint8_t boost[] = {0xFD,0x87,0x11,0x4B,0x02,0x02,0x00,0x00,0x65,0xFF,0x00,0x00,0xFF,0xFF,0xFF,0xFF,0x4A,0x72};
+  this->write_array(boost, sizeof(boost));
+  this->flush();
+  ESP_LOGI(TAG, "AldesBox Boost command sent (18 bytes, checksum 0x72)");
 }
 
 void AldesIBus::setup() {
