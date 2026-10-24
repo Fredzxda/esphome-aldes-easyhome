@@ -108,11 +108,14 @@ sensor:
   - platform: copy
     source_id: ibus_varhr
     name: "QAI Humidite"
+    device_class: aqi
+    entity_category: diagnostic
     accuracy_decimals: 0
 
   - platform: template
     id: ibus_qai_co2
     name: "QAI contribution CO2"
+    device_class: aqi
     accuracy_decimals: 1
     entity_category: diagnostic
     filters:
@@ -124,7 +127,8 @@ sensor:
 
   - platform: template
     id: ibus_qai_index
-    name: "QAI Index estime"
+    name: "QAI Index"
+    device_class: aqi
     accuracy_decimals: 1
     filters:
       - lambda: return roundf(x * 10.0f) / 10.0f;
