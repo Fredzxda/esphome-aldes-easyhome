@@ -158,7 +158,7 @@ output:
     pin: GPIO26
   - platform: gpio
     id: ibus_wifi_led
-    pin: GPIO13
+    pin: GPIO27
 
 globals:
   - id: ibus_wifi_led_tick
@@ -168,7 +168,7 @@ globals:
 
 # Wi-Fi connection: 1 s ON / 1 s OFF.
 # Wi-Fi connected, ESPHome API disconnected: 0.5 s ON / 0.5 s OFF.
-# Both connected: LED OFF.
+# Both connected: LED ON.
 interval:
   - interval: 500ms
     then:
@@ -180,7 +180,7 @@ interval:
                 condition:
                   api.connected:
                 then:
-                  - output.turn_off: ibus_wifi_led
+                  - output.turn_on: ibus_wifi_led
                 else:
                   - lambda: |-
                       id(ibus_wifi_led_tick)++;
