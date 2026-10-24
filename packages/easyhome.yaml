@@ -1,5 +1,5 @@
 # Release package v1.0.0. Import from GitHub with packages:
-#   easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@main
+#   easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@dev/led_management
 #
 # Manual Boost TX test: inverted TX GPIO1, RX GPIO3.
 # Optional room labels supplied by the consuming YAML: piece_1, piece_2, piece_3.
@@ -7,7 +7,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/Fredzxda/esphome-aldes-easyhome
-      ref: main
+      ref: dev/led_management
     components: [aldes_ibus]
     refresh: always
 
@@ -144,6 +144,12 @@ sensor:
       return std::min(100.0f, std::max(0.0f, std::max(id(ibus_varhr).state, 0.065f * id(ibus_co2).state - 28.0f)));
 
 text_sensor:
+  - platform: template
+    name: "Version firmware Aldes"
+    entity_category: diagnostic
+    icon: mdi:information-outline
+    lambda: 'return {"${firmware_version}"};'
+    update_interval: never
   - platform: template
     name: "Polluant dominant"
     update_interval: 10s
