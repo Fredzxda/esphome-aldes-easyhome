@@ -12,7 +12,6 @@ namespace aldes_ibus {
 static const char *const TAG = "aldes_ibus";
 static constexpr size_t MAX_BUFFER = 1024;
 static constexpr uint32_t FRAME_TIMEOUT_MS = 500;
-static constexpr uint32_t MODE_POLL_INTERVAL_MS = 10000;
 static constexpr uint32_t MODE_PREF_KEY = 0xA1DE5E01;
 
 void AldesIBus::dump_config() {
@@ -64,6 +63,8 @@ void AldesIBus::setup() {
            (restored && valid) ? "restored" : "default Daily",
            this->pending_mode_);
   this->publish_counters_();
+  if (this->connected_sensor_) this->connected_sensor_->publish_state(false);
+  if (this->rx_led_) this->rx_led_->turn_off();
 }
 
 void AldesIBus::publish_counters_() {
@@ -102,6 +103,15 @@ void AldesIBus::loop() {
     ESP_LOGW(TAG, "Receive buffer overflow");
   }
   this->parse_();
+  if (this->rx_led_active_ && millis() - this->rx_led_on_ms_ >= 1000) {
+    this->rx_led_active_ = false;
+    if (this->rx_led_) this->rx_led_->turn_off();
+  }
+  const bool connected = this->ibus_connected();
+  if (this->connected_sensor_ && connected != this->connected_published_) {
+    this->connected_published_ = connected;
+    this->connected_sensor_->publish_state(connected);
+  }
   // Queue a refresh of the last successfully transmitted mode every 10 s.
   // The initial restored (or default Daily) command is queued in setup().
   if (!this->mode_pending_ && this->has_sent_mode_ &&
@@ -184,6 +194,11 @@ void AldesIBus::parse_() {
       ESP_LOGD(TAG, "iBUS TX echo (%u bytes): %s", (unsigned) size, hex.c_str());
     } else {
       this->frames_ok_++;
+      this->has_valid_frame_ = true;
+      this->last_valid_frame_ms_ = millis();
+      this->rx_led_on_ms_ = millis();
+      this->rx_led_active_ = true;
+      if (this->rx_led_) this->rx_led_->turn_on();
       // Standard 28-byte VMC status: CO2 at offsets 20-21 (LE),
       // humidity variation (VarHR) at offset 23.
       if (size == 28 && this->buffer_[3] == 0x4B &&
