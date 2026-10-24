@@ -38,7 +38,7 @@ aldes_ibus:
     name: "iBUS Connecté"
     entity_category: diagnostic
   raw_rx:
-    name: "iBUS RX brut hex"
+    name: "iBUS RX brut hex"  # VMC response only; TX echo excluded
   last_frame:
     name: "iBUS Derniere trame VMC"
   last_long_frame:
