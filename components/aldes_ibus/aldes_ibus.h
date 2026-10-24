@@ -28,6 +28,8 @@ class AldesIBus : public Component, public uart::UARTDevice {
   void set_co2_sensor(sensor::Sensor *s) { co2_sensor_ = s; }
   void set_varhr_sensor(sensor::Sensor *s) { varhr_sensor_ = s; }
   void set_room_sensor(size_t index, sensor::Sensor *s) { if (index < 6) room_sensors_[index] = s; }
+  void set_pwm1_sensor(sensor::Sensor *s) { pwm1_sensor_ = s; }
+  void set_pwm2_sensor(sensor::Sensor *s) { pwm2_sensor_ = s; }
   void dump_config() override;
  protected:
   std::vector<uint8_t> buffer_;
@@ -51,6 +53,8 @@ class AldesIBus : public Component, public uart::UARTDevice {
   sensor::Sensor *co2_sensor_{nullptr};
   sensor::Sensor *varhr_sensor_{nullptr};
   sensor::Sensor *room_sensors_[6]{};
+  sensor::Sensor *pwm1_sensor_{nullptr};
+  sensor::Sensor *pwm2_sensor_{nullptr};
   uint32_t frames_ok_{0};
   uint32_t checksum_bad_{0};
   uint32_t sync_errors_{0};
