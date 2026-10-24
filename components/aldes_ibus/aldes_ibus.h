@@ -1,6 +1,7 @@
 #pragma once
 
 #include "esphome/core/component.h"
+#include "esphome/core/preferences.h"
 #include "esphome/components/uart/uart.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
@@ -30,6 +31,7 @@ class AldesIBus : public Component, public uart::UARTDevice {
   uint32_t last_tx_ms_{0};
   uint8_t pending_mode_{0};
   bool mode_pending_{false};
+  ESPPreferenceObject mode_pref_;
   bool has_sent_mode_{false};
   uint8_t last_sent_mode_{0};
   uint32_t rx_bytes_{0};
