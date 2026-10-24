@@ -65,12 +65,21 @@ aldes_ibus:
     name: "Variation humidite"
     entity_category: diagnostic
 
-# Command selector. State is optimistic until VMC status feedback is wired in.
+# Requested-mode selector: mirrors ESP32 persisted/queued mode, not confirmed VMC feedback.
 select:
   - platform: template
     name: "iBUS Mode VMC"
     id: ibus_mode_vmc
-    optimistic: true
+    update_interval: 5s
+    lambda: |-
+      switch (id(easyhome_ibus).get_requested_mode()) {
+        case 0x10: return std::string("Programmation");
+        case 0x21: return std::string("Vacances");
+        case 0x43: return std::string("Quotidien");
+        case 0x65: return std::string("Boost");
+        case 0x87: return std::string("Invites");
+        default: return std::string("Quotidien");
+      }
     options:
       - "Programmation"
       - "Vacances"
