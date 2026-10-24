@@ -1,7 +1,7 @@
 # Development package. Import from GitHub with packages:
 #   easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@dev/ibus-rx
 #
-# RX-only hardware test: UART0 GPIO3, no RX inversion.
+# Manual polling test: inverted TX GPIO1, RX GPIO3.
 external_components:
   - source:
       type: git
@@ -12,6 +12,9 @@ external_components:
 
 uart:
   id: easyhome_uart
+  tx_pin:
+    number: GPIO1
+    inverted: true
   rx_pin:
     number: GPIO3
     inverted: false
@@ -36,3 +39,10 @@ aldes_ibus:
     name: "iBUS Erreurs de synchronisation"
   rx_bytes:
     name: "iBUS Octets recus"
+
+button:
+  - platform: template
+    name: "iBUS Interroger VMC"
+    entity_category: diagnostic
+    on_press:
+      - lambda: 'id(easyhome_ibus).send_poll();'
