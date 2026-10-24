@@ -4,6 +4,8 @@
 #include "esphome/core/preferences.h"
 #include "esphome/components/uart/uart.h"
 #include "esphome/components/sensor/sensor.h"
+#include "esphome/components/binary_sensor/binary_sensor.h"
+#include "esphome/components/output/binary_output.h"
 #include "esphome/components/text_sensor/text_sensor.h"
 #include <vector>
 #include <cstdint>
@@ -30,9 +32,20 @@ class AldesIBus : public Component, public uart::UARTDevice {
   void set_room_sensor(size_t index, sensor::Sensor *s) { if (index < 6) room_sensors_[index] = s; }
   void set_pwm1_sensor(sensor::Sensor *s) { pwm1_sensor_ = s; }
   void set_pwm2_sensor(sensor::Sensor *s) { pwm2_sensor_ = s; }
+  void set_connected_sensor(binary_sensor::BinarySensor *s) { connected_sensor_ = s; }
+  void set_rx_led(output::BinaryOutput *o) { rx_led_ = o; }
+  bool ibus_connected() const { return has_valid_frame_ && (millis() - last_valid_frame_ms_ < MODE_POLL_INTERVAL_MS + 2000); }
   void dump_config() override;
  protected:
+  static constexpr uint32_t MODE_POLL_INTERVAL_MS = 10000;
   std::vector<uint8_t> buffer_;
+  binary_sensor::BinarySensor *connected_sensor_{nullptr};
+  output::BinaryOutput *rx_led_{nullptr};
+  uint32_t last_valid_frame_ms_{0};
+  uint32_t rx_led_on_ms_{0};
+  bool has_valid_frame_{false};
+  bool connected_published_{false};
+  bool rx_led_active_{false};
   uint32_t last_byte_ms_{0};
   uint32_t last_tx_ms_{0};
   uint8_t pending_mode_{0};
