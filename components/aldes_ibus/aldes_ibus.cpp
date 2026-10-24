@@ -13,6 +13,7 @@ static const char *const TAG = "aldes_ibus";
 static constexpr size_t MAX_BUFFER = 1024;
 static constexpr uint32_t FRAME_TIMEOUT_MS = 500;
 static constexpr uint32_t MODE_POLL_INTERVAL_MS = 10000;
+static constexpr uint32_t MODE_PREF_KEY = 0xA1DE5E01;
 
 void AldesIBus::dump_config() {
   ESP_LOGCONFIG(TAG, "Aldes iBUS transceiver (periodic mode polling, 10s)");
@@ -40,6 +41,9 @@ void AldesIBus::queue_mode(uint8_t mode) {
     case 0x10: case 0x21: case 0x43: case 0x65: case 0x87:
       this->pending_mode_ = mode;
       this->mode_pending_ = true;  // latest selection wins
+      if (!this->mode_pref_.save(&mode)) {
+        ESP_LOGW(TAG, "Failed to persist requested VMC mode 0x%02X", mode);
+      }
       ESP_LOGI(TAG, "Queued VMC mode 0x%02X", mode);
       break;
     default:
@@ -48,11 +52,17 @@ void AldesIBus::queue_mode(uint8_t mode) {
 }
 
 void AldesIBus::setup() {
-  // Initialize a safe default for continuous polling after every reboot.
-  // A Home Assistant mode selection overrides this queued command.
-  this->pending_mode_ = 0x43;  // Daily
+  this->mode_pref_ = global_preferences->make_preference<uint8_t>(MODE_PREF_KEY);
+  uint8_t saved_mode = 0x43;  // Daily on first boot or invalid preference
+  const bool restored = this->mode_pref_.load(&saved_mode);
+  const bool valid = saved_mode == 0x10 || saved_mode == 0x21 ||
+                     saved_mode == 0x43 || saved_mode == 0x65 ||
+                     saved_mode == 0x87;
+  this->pending_mode_ = (restored && valid) ? saved_mode : 0x43;
   this->mode_pending_ = true;
-  ESP_LOGI(TAG, "Startup: queued Daily mode 0x43 for periodic iBUS polling");
+  ESP_LOGI(TAG, "Startup: %s VMC mode 0x%02X queued",
+           (restored && valid) ? "restored" : "default Daily",
+           this->pending_mode_);
   this->publish_counters_();
 }
 
@@ -93,7 +103,7 @@ void AldesIBus::loop() {
   }
   this->parse_();
   // Queue a refresh of the last successfully transmitted mode every 10 s.
-  // The initial Daily command is queued in setup().
+  // The initial restored (or default Daily) command is queued in setup().
   if (!this->mode_pending_ && this->has_sent_mode_ &&
       millis() - this->last_tx_ms_ >= MODE_POLL_INTERVAL_MS) {
     this->pending_mode_ = this->last_sent_mode_;
