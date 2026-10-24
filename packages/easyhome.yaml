@@ -185,6 +185,9 @@ output:
 time:
   - platform: homeassistant
     id: ibus_local_time
+    on_time_sync:
+      then:
+        - script.execute: ibus_update_led_night_mode
 
 globals:
   - id: ibus_night_mode
@@ -196,10 +199,17 @@ globals:
     restore_value: no
     initial_value: '0'
 
-# LEDs off between start and end hours; equal hours disable night mode.
-# Without a valid Home Assistant time, LEDs stay enabled.
-interval:
-  - interval: 30s
+# Light POWER immediately at ESPHome startup, before Home Assistant time sync.
+# Reevaluate at first valid time synchronization and periodically afterwards.
+esphome:
+  on_boot:
+    priority: 600
+    then:
+      - output.turn_on: ibus_power_led
+
+script:
+  - id: ibus_update_led_night_mode
+    mode: restart
     then:
       - lambda: |-
           auto now = id(ibus_local_time).now();
@@ -218,6 +228,10 @@ interval:
             - output.turn_off: ibus_wifi_led
           else:
             - output.turn_on: ibus_power_led
+interval:
+  - interval: 30s
+    then:
+      - script.execute: ibus_update_led_night_mode
   - interval: 500ms
     then:
       - if:
