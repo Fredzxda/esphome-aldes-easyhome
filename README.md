@@ -2,7 +2,7 @@
 
 Intégration **locale** d'une VMC **Aldes EasyHOME PureAIR Premium / Connect** dans **Home Assistant** avec **ESPHome**, sans AldesConnect Box ni cloud Aldes.
 
-> **Version 1.0.0.** Intégration locale de la VMC via iBUS : mesures, diagnostics et commandes de mode depuis Home Assistant. Projet communautaire non officiel, indépendant d'Aldes.
+> **Version 1.0.1.** Intégration locale de la VMC via iBUS : mesures, diagnostics et commandes de mode depuis Home Assistant. Projet communautaire non officiel, indépendant d'Aldes.
 
 ## Origine du projet et montage électronique
 
@@ -11,14 +11,14 @@ Ce projet s'appuie sur les travaux de **Quentin57520**, **yanoooou**, **moi-mêm
 - [Discussion HACF : VMC Aldes EasyHOME PureAIR Premium → Aldes PureFlow MQTT](https://forum.hacf.fr/t/vmc-aldes-easyhome-pureair-premium-aldes-pureflow-mqtt/68269)
 - [Échanges sur le PCB ESP32 réalisé par Quentin (page 10)](https://forum.hacf.fr/t/vmc-aldes-easyhome-pureair-premium-aldes-pureflow-mqtt/68269?page=10)
 
-**Le montage électronique d'interface iBUS conçu par Quentin est nécessaire** : ne branchez **jamais** directement le bus iBUS de la VMC sur les GPIO 3,3 V de l'ESP32. Consultez le schéma et les photos du montage publiés dans la discussion HACF, et utilisez **la version correspondant à votre PCB**. Le dépôt fournit le logiciel ESPHome, pas un adaptateur électrique intégré à la carte ESP32.
+**Le montage électronique d'interface iBUS conçu par Quentin est nécessaire** : ne branchez **jamais** directement le bus iBUS de la VMC sur les GPIO 3,3 V de l'ESP32. Consultez [le message HACF n°214 consacré au PCB de Quentin](https://forum.hacf.fr/t/vmc-aldes-easyhome-pureair-premium-aldes-pureflow-mqtt/68269/214), ainsi que le schéma et les photos du montage publiés dans la discussion, et utilisez **la version correspondant à votre PCB**. Pour toute demande concernant l'obtention d'un PCB, rapprochez-vous de **Quentin57520** directement sur le forum HACF. Le dépôt fournit le logiciel ESPHome, pas un adaptateur électrique intégré à la carte ESP32.
 
 La carte de commande VMC utilisée pour les essais porte le marquage **Aldes Himalaya01M1b**. Vérifiez la compatibilité de votre matériel avant installation.
 
 ### Matériel
 
 - **ESP32-WROOM-32U ESP32 DevKitC V4**, avec kit d'antennes externes, modèle acheté pour ce projet : [Amazon France — B0D7ZGT9PM](https://www.amazon.fr/dp/B0D7ZGT9PM). Vérifiez la variante livrée : **WROOM-32U** utilise une antenne externe adaptée, à installer sur son connecteur RF.
-- **Carte d'interface iBUS / PCB de Quentin**, assemblée suivant le schéma et les composants documentés sur le forum HACF.
+- **Carte d'interface iBUS / PCB de Quentin**, assemblée suivant le schéma et les composants documentés sur le forum HACF. Pour vous procurer un PCB, contactez **Quentin57520** sur le forum.
 - Alimentation **5 V USB adaptée** pour l'ESP32, réseau Wi-Fi 2,4 GHz et instance Home Assistant avec ESPHome.
 
 **Attention :** la carte de commande de la VMC comporte des circuits secteur. Coupez l'alimentation avant toute intervention. Ne raccordez pas le secteur à l'interface ESP32 ; l'alimentation USB séparée est préférable pour les premiers essais. Le bus iBUS n'est **ni un UART 3,3 V direct, ni du RS485/Modbus**.
@@ -84,9 +84,9 @@ Les identifiants Wi-Fi et la clé API restent **dans la configuration ESPHome lo
 
 ## Version et branche
 
-La branche **`main`** contient la version **1.0.0** décrite ici. Les développements futurs sont réalisés séparément sur `dev/ibus-rx`.
+La branche **`main`** contient la version **1.0.1** décrite ici. Les développements futurs sont réalisés séparément sur `dev/ibus-rx`.
 
-## Version 1.0.0 — inventaire des entités
+## Version 1.0.1 — inventaire des entités
 
 ### Pilotage
 
@@ -124,7 +124,7 @@ Les noms des pièces sont définis par `piece_1`, `piece_2` et `piece_3` dans le
 - Connexion Home Assistant native via ESPHome, Wi-Fi et mise à jour OTA.
 - Mémorisation du mode demandé sur l'ESP32 après redémarrage.
 
-**Points à connaître pour la v1.0.0 :** décodage de certains octets des trames longues incomplet ; calcul QAI estimatif, non validé par Aldes ; compatibilité testée principalement avec la carte Aldes Himalaya01M1b et le montage de Quentin ; absence de retour d'acquittement fiable du mode VMC. Vérifiez les commandes sur votre propre installation avant tout usage non supervisé.
+**Points à connaître pour la v1.0.1 :** décodage de certains octets des trames longues incomplet ; calcul QAI estimatif, non validé par Aldes ; compatibilité testée principalement avec la carte Aldes Himalaya01M1b et le montage de Quentin ; absence de retour d'acquittement fiable du mode VMC. Vérifiez les commandes sur votre propre installation avant tout usage non supervisé.
 
 ## Licence
 
