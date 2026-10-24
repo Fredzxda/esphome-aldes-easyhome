@@ -148,7 +148,7 @@ text_sensor:
     name: "Version firmware Aldes"
     entity_category: diagnostic
     icon: mdi:information-outline
-    lambda: 'return {"${firmware_version}"};'
+    lambda: 'return {"1.0.1-dev"};'
     update_interval: 60s
   - platform: template
     name: "Polluant dominant"
