@@ -33,6 +33,8 @@ class AldesIBus : public Component, public uart::UARTDevice {
   void set_room_sensor(size_t index, sensor::Sensor *s) { if (index < 6) room_sensors_[index] = s; }
   void set_pwm1_sensor(sensor::Sensor *s) { pwm1_sensor_ = s; }
   void set_pwm2_sensor(sensor::Sensor *s) { pwm2_sensor_ = s; }
+  void set_self_controlled_sensor(binary_sensor::BinarySensor *s) { self_controlled_sensor_ = s; }
+  void set_actual_mode_sensor(text_sensor::TextSensor *s) { actual_mode_sensor_ = s; }
   void set_connected_sensor(binary_sensor::BinarySensor *s) { connected_sensor_ = s; }
   void set_rx_led(output::BinaryOutput *o) { rx_led_ = o; }
   bool ibus_connected() const { return has_valid_frame_ && (millis() - last_valid_frame_ms_ < MODE_POLL_INTERVAL_MS + 2000); }
@@ -68,6 +70,8 @@ class AldesIBus : public Component, public uart::UARTDevice {
   sensor::Sensor *room_sensors_[6]{};
   sensor::Sensor *pwm1_sensor_{nullptr};
   sensor::Sensor *pwm2_sensor_{nullptr};
+  binary_sensor::BinarySensor *self_controlled_sensor_{nullptr};
+  text_sensor::TextSensor *actual_mode_sensor_{nullptr};
   uint32_t frames_ok_{0};
   uint32_t checksum_bad_{0};
   uint32_t sync_errors_{0};
