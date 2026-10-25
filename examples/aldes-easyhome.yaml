@@ -1,4 +1,4 @@
-# ESPHome EasyHome v1.0.0 example. Replace secrets with your local ESPHome secrets.
+# ESPHome EasyHome v1.1.0 example. Replace secrets with your local ESPHome secrets.
 substitutions:
   device_name: aldes-easyhome
   friendly_name: Aldes EasyHome
@@ -6,8 +6,6 @@ substitutions:
   piece_1: Cuisine
   piece_2: Baignoire
   piece_3: Douche
-  # iBUS pins are configured in packages/easyhome.yaml:
-  # RX GPIO3 (via R7 on Quentin's PCB), TX GPIO1 (inverted).
 
 esphome:
   name: ${device_name}

@@ -1,4 +1,4 @@
-# Release package v1.0.0. Import from GitHub with packages:
+# Release package v1.1.0. Import from GitHub with packages:
 #   easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@main
 #
 # Manual Boost TX test: inverted TX GPIO1, RX GPIO3.
@@ -14,7 +14,7 @@ external_components:
 uart:
   # Reserve UART0 without using the iBUS pins; ESPHome assigns UARTs in declaration order.
   - id: uart_reserve
-    tx_pin: GPIO25
+    tx_pin: GPIO32
     baud_rate: 9600
 
   - id: easyhome_uart
@@ -33,7 +33,7 @@ uart:
 aldes_ibus:
   id: easyhome_ibus
   uart_id: easyhome_uart
-  rx_led: ibus_rx_led
+  rx_led: ibus_rx_led_gated
   connected:
     name: "iBUS Connecté"
     entity_category: diagnostic
@@ -145,6 +145,12 @@ sensor:
 
 text_sensor:
   - platform: template
+    name: "Version firmware Aldes"
+    entity_category: diagnostic
+    icon: mdi:information-outline
+    lambda: 'return {"1.1.0"};'
+    update_interval: 60s
+  - platform: template
     name: "Polluant dominant"
     update_interval: 10s
     lambda: |-
@@ -153,43 +159,144 @@ text_sensor:
       const float qai_co2 = 0.065f * id(ibus_co2).state - 28.0f;
       return std::string(id(ibus_varhr).state >= qai_co2 ? "Humidité" : "CO2");
 
-# GPIO25 remains the reserved UART TX / power LED; do not drive it here.
+# GPIO25 is released from the UART reservation; verify LED polarity on the PCB.
 output:
   - platform: gpio
-    id: ibus_rx_led
+    id: ibus_power_led
+    pin: GPIO25
+  - platform: gpio
+    id: ibus_rx_led_physical
     pin: GPIO26
+  - platform: template
+    id: ibus_rx_led_gated
+    type: binary
+    write_action:
+      - if:
+          condition:
+            lambda: 'return !id(ibus_night_mode) && state;'
+          then:
+            - output.turn_on: ibus_rx_led_physical
+          else:
+            - output.turn_off: ibus_rx_led_physical
   - platform: gpio
     id: ibus_wifi_led
     pin: GPIO27
 
+# User controls in Home Assistant (not diagnostic entities).
+switch:
+  - platform: template
+    id: ibus_night_enabled
+    name: "Mode nuit LEDs"
+    icon: mdi:weather-night
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    on_turn_on:
+      - script.execute: ibus_update_led_night_mode
+    on_turn_off:
+      - script.execute: ibus_update_led_night_mode
+
+datetime:
+  - platform: template
+    id: ibus_night_start
+    type: time
+    name: "Début mode nuit LEDs"
+    icon: mdi:clock-start
+    optimistic: true
+    restore_value: true
+    initial_value: "23:00:00"
+    on_value:
+      then:
+        - script.execute: ibus_update_led_night_mode
+  - platform: template
+    id: ibus_night_end
+    type: time
+    name: "Fin mode nuit LEDs"
+    icon: mdi:clock-end
+    optimistic: true
+    restore_value: true
+    initial_value: "07:00:00"
+    on_value:
+      then:
+        - script.execute: ibus_update_led_night_mode
+
+time:
+  - platform: homeassistant
+    id: ibus_local_time
+    on_time_sync:
+      then:
+        - script.execute: ibus_update_led_night_mode
+
 globals:
+  - id: ibus_night_mode
+    type: bool
+    restore_value: no
+    initial_value: 'false'
   - id: ibus_wifi_led_tick
     type: uint32_t
     restore_value: no
     initial_value: '0'
 
-# Wi-Fi connection: 1 s ON / 1 s OFF.
-# Wi-Fi connected, ESPHome API disconnected: 0.5 s ON / 0.5 s OFF.
-# Both connected: LED ON.
+# Light POWER immediately at ESPHome startup, before Home Assistant time sync.
+# Reevaluate at first valid time synchronization and periodically afterwards.
+esphome:
+  on_boot:
+    priority: 600
+    then:
+      - output.turn_on: ibus_power_led
+
+script:
+  - id: ibus_update_led_night_mode
+    mode: restart
+    then:
+      - lambda: |-
+          auto now = id(ibus_local_time).now();
+          if (!id(ibus_night_enabled).state || !now.is_valid()) {
+            id(ibus_night_mode) = false;
+            return;
+          }
+          const int minute_now = now.hour * 60 + now.minute;
+          const int start = id(ibus_night_start).hour * 60 + id(ibus_night_start).minute;
+          const int end = id(ibus_night_end).hour * 60 + id(ibus_night_end).minute;
+          id(ibus_night_mode) = start < end ? (minute_now >= start && minute_now < end)
+                                : start > end ? (minute_now >= start || minute_now < end)
+                                              : false;
+      - if:
+          condition:
+            lambda: 'return id(ibus_night_mode);'
+          then:
+            - output.turn_off: ibus_power_led
+            - output.turn_off: ibus_rx_led_physical
+            - output.turn_off: ibus_wifi_led
+          else:
+            - output.turn_on: ibus_power_led
 interval:
+  - interval: 30s
+    then:
+      - script.execute: ibus_update_led_night_mode
   - interval: 500ms
     then:
       - if:
           condition:
-            wifi.connected:
+            lambda: 'return id(ibus_night_mode);'
           then:
+            - output.turn_off: ibus_wifi_led
+          else:
             - if:
                 condition:
-                  api.connected:
+                  wifi.connected:
                 then:
-                  - output.turn_on: ibus_wifi_led
+                  - if:
+                      condition:
+                        api.connected:
+                      then:
+                        - output.turn_on: ibus_wifi_led
+                      else:
+                        - lambda: |-
+                            id(ibus_wifi_led_tick)++;
+                            if (id(ibus_wifi_led_tick) & 1) id(ibus_wifi_led).turn_on();
+                            else id(ibus_wifi_led).turn_off();
                 else:
                   - lambda: |-
                       id(ibus_wifi_led_tick)++;
-                      if (id(ibus_wifi_led_tick) & 1) id(ibus_wifi_led).turn_on();
+                      if ((id(ibus_wifi_led_tick) / 2) & 1) id(ibus_wifi_led).turn_on();
                       else id(ibus_wifi_led).turn_off();
-          else:
-            - lambda: |-
-                id(ibus_wifi_led_tick)++;
-                if ((id(ibus_wifi_led_tick) / 2) & 1) id(ibus_wifi_led).turn_on();
-                else id(ibus_wifi_led).turn_off();
