@@ -79,7 +79,7 @@ jobs:
               raise SystemExit("Could not switch example to local package")
           (ci / "device.yaml").write_text(example, encoding="utf-8")
           (ci / "secrets.yaml").write_text(
-              'aldes_easyhome_api_key: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="\n'
+              'aldes_easyhome_api_key: "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA="\n'
               'wifi_ssid: "CI-test"\n'
               'wifi_password: "ci-placeholder-password"\n',
               encoding="utf-8",
