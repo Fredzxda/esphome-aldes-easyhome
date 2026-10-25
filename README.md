@@ -42,16 +42,20 @@ Le composant ESPHome reconnaît les commandes émises (ou leurs échos) commenç
 
 #### Commande de mode vers la VMC — 18 octets
 
-Trame de référence (Boost) : `FD 87 11 4B 02 02 00 00 65 FF 00 00 FF FF FF FF 4A 72`.
+Exemple de trame (Mode Boost demandé) : `FD 87 11 4B 02 02 00 00 65 FF 00 00 FF FF FF FF 4A 72`.
 
 | Indice | Octet(s) | Rôle |
 | --- | --- | --- |
 | 0–1 | `FD 87` | En-tête de commande |
-| 2 | `11` | Longueur moins 1 : 0x11 + 1 = 18 octets |
-| 3–7 | `4B 02 02 00 00` | Champs fixes de la commande observée ; signification détaillée non établie |
+| 2 | Variable* | Longueur de la trame moins 1 : 0x11 + 1 = 18 octets |
+| 3 | `4B` | Pattern de début de payload |
+| 4–7 | `02 02 00 00` | Champs fixes de la commande observée ; signification détaillée non établie |
 | 8 | Variable | Code du mode demandé |
-| 9–16 | `FF 00 00 FF FF FF FF 4A` | Champs fixes observés dans les commandes de mode |
+| 9–15 | `FF 00 00 FF FF FF FF` | Champs fixes observés dans les commandes de mode |
+| 16 | `4A` | Pattern de fin de payload |
 | 17 | Variable | Checksum calculé sur les 17 octets précédents |
+
+* : Le mode Vacances n'est pour l'instant que partiellement implémenté. Si les plages horaires et les modes sont communiqués vers la VMC, les trames pourraient être plus longues. Poour l'instant, seule la valeur 11, correspondant à des commandes de 18 octets, a été observée.
 
 Codes de mode actuellement utilisés :
 
@@ -73,18 +77,20 @@ Exemple de trame observée : `87 00 1B 4B 03 01 00 01 C0 03 87 00 00 00 72 44 76
 | --- | --- | --- |
 | 0–1 | `87 00` | En-tête de réponse VMC |
 | 2 | `1B` | Longueur moins 1 : 0x1B + 1 = 28 octets |
-| 3–5 | `4B 03 01` | Identifiant de réponse standard reconnu par le décodeur |
+| 3 | `4B` | Pattern de début de payload |
+| 4–5 | `03 01` | Identifiant de réponse standard reconnu par le décodeur |
 | 6–7 | Variable | Champs non décodés |
 | 8–9 | Variable | PWM QAI 1, entier 16 bits *little-endian* |
-| 10–13 | Variable | Champs non décodés |
+| 10 | Variable | Mode de la VMC |
+| 11–13 | `00 00 00` | Champs non décodés |
 | 14–15 | Variable | Température et humidité de la pièce 1 |
 | 16–17 | Variable | Température et humidité de la pièce 2 |
 | 18–19 | Variable | Température et humidité de la pièce 3 |
 | 20–21 | Variable | CO₂ (ppm), entier 16 bits *little-endian* |
-| 22 | Variable | Champ non décodé |
+| 22 | `17` | Champ non décodé |
 | 23 | Variable | Variation d'humidité (VarHR) |
 | 24–25 | Variable | PWM QAI 2, entier 16 bits *little-endian* |
-| 26 | Variable | Champ non décodé |
+| 26 | `4A` | Pattern de fin de payload |
 | 27 | Variable | Checksum |
 
 Pour les températures, le décodeur applique la formule `(octet >> 2) - 6 + (octet & 3) × 0,25` en °C. L'humidité correspond à l'octet suivant, en pourcentage.
@@ -93,7 +99,7 @@ Les observations suggèrent que **PWM QAI 1** reflète la ventilation résultant
 
 #### Réponses longues — 54 octets
 
-Le composant accepte également les trames VMC valides de **54 octets**, en conserve la dernière et l'expose dans les diagnostics. Le détail de leurs champs n'est pas encore documenté de façon suffisamment fiable pour être présenté comme décodé.
+Le composant accepte également les trames VMC valides de **54 octets**, en conserve la dernière et l'expose dans les diagnostics. Le détail de leurs champs n'est pas encore documenté de façon suffisamment fiable pour être présenté comme décodé. Ces trames sont principalement envoyés par la VMC lors de son démarrage puis de manière non régulière et beaucoup plus rare par la suite.
 
 #### Calcul et vérification du checksum
 
@@ -178,14 +184,14 @@ Pour la LED **Wi-Fi / API**, les états sont les suivants :
 | Wi-Fi et API Home Assistant connectés | **Allumée fixe** |
 | Connexion perdue | **Reprise du clignotement** correspondant à la connexion manquante |
 
-Le **mode nuit LEDs** éteint les trois LEDs sur une plage horaire configurable dans Home Assistant. Il est désactivé par défaut ; ses horaires initiaux sont **23:00–07:00**. Les horaires et l'état de l'interrupteur sont conservés après redémarrage. La plage horaire utilise l'heure fournie par Home Assistant ; en l'absence d'heure valide, les LEDs restent autorisées. Les modifications des contrôles provoquent une réévaluation immédiate, avec une vérification périodique en complément.
+Le **mode nuit LEDs** éteint les trois LEDs sur une plage horaire configurable dans Home Assistant. Il a été créé pour ceux qui comme moi préfère avoir la carte dans la maison plustôt que dans les combles afin d'améliorer la qualité du signal wifi et de limiter les risques liés à l'humidité. Il est désactivé par défaut ; ses horaires initiaux sont **23:00–07:00**. Les horaires et l'état de l'interrupteur sont conservés après redémarrage. La plage horaire utilise l'heure fournie par Home Assistant ; en l'absence d'heure valide, les LEDs restent autorisées. Les modifications des contrôles provoquent une réévaluation immédiate.
 
 #### Autres fonctions
 
-- Intégration **locale** dans Home Assistant via l'API native ESPHome, sans cloud Aldes.
+- Intégration **locale** dans Home Assistant via l'API native ESPHome, sans cloud Aldes ni besoin d'AldesConnect Box.
 - Mise à jour du firmware en **OTA** après la première installation.
 - Diagnostics de communication iBUS et conservation des dernières réponses valides.
-- Capteur de version du firmware compilé ; la version n'est pas saisie dans le YAML de l'utilisateur et ne se met pas à jour sans nouveau flash.
+- Capteur de version du firmware.
 
 ## Installation dans ESPHome
 
