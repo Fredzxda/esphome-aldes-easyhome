@@ -5,6 +5,7 @@ on:
     branches: [main]
   push:
     branches: [main]
+    tags: ['v*']
   release:
     types: [published]
   workflow_dispatch:
@@ -27,7 +28,7 @@ jobs:
 
       - name: Check version consistency
         env:
-          RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || '' }}
+          RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && github.ref_name) || '' }}
         run: |
           python - <<'PY'
           import os
