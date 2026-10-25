@@ -1,4 +1,4 @@
-# ESPHome EasyHome v1.0.0 example. Replace secrets with your local ESPHome secrets.
+# ESPHome EasyHome v1.1.0 example. Replace secrets with your local ESPHome secrets.
 substitutions:
   device_name: aldes-easyhome
   friendly_name: Aldes EasyHome
@@ -32,4 +32,4 @@ wifi:
   password: !secret wifi_password
 
 packages:
-  easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@dev/led_management
+  easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@main
