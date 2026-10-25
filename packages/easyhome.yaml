@@ -73,7 +73,7 @@ aldes_ibus:
     name: "PWM Actuel"
     entity_category: diagnostic
   pwm2:
-    name: "PWM Min"
+    name: "PWM Cible QAI"
     entity_category: diagnostic
   self_controlled:
     name: "Self Controlled"
