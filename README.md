@@ -47,7 +47,7 @@ Exemple de trame (Mode Boost demandé) : `FD 87 11 4B 02 02 00 00 65 FF 00 00 FF
 | Indice | Octet(s) | Rôle |
 | --- | --- | --- |
 | 0–1 | `FD 87` | En-tête de commande |
-| 2 | Variable* | Longueur de la trame moins 1 : 0x11 + 1 = 18 octets |
+| 2 | Variable\* | Longueur de la trame moins 1 : 0x11 + 1 = 18 octets |
 | 3 | `4B` | Pattern de début de payload |
 | 4–7 | `02 02 00 00` | Champs fixes de la commande observée ; signification détaillée non établie |
 | 8 | Variable | Code du mode demandé |
@@ -55,7 +55,7 @@ Exemple de trame (Mode Boost demandé) : `FD 87 11 4B 02 02 00 00 65 FF 00 00 FF
 | 16 | `4A` | Pattern de fin de payload |
 | 17 | Variable | Checksum calculé sur les 17 octets précédents |
 
-* : Le mode Vacances n'est pour l'instant que partiellement implémenté. Si les plages horaires et les modes sont communiqués vers la VMC, les trames pourraient être plus longues. Poour l'instant, seule la valeur 11, correspondant à des commandes de 18 octets, a été observée.
+\* Le mode Vacances n'est pour l'instant que partiellement implémenté. Si les plages horaires et les modes sont communiqués vers la VMC, les trames pourraient être plus longues. Poour l'instant, seule la valeur 11, correspondant à des commandes de 18 octets, a été observée.
 
 Codes de mode actuellement utilisés :
 
