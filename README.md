@@ -109,7 +109,6 @@ Pour une trame de `N` octets :
 
 ```text
 checksum = (- somme(octets[0] à octets[N-2])) & 0xFF
-validation : (somme(octets[0] à octets[N-1]) & 0xFF) == 0
 ```
 
 Exemple : pour la commande Boost ci-dessus, le checksum est `0x72`. Le décodeur rejette les trames dont la somme n'est pas nulle, et ne publie pas les échos des commandes comme réponses VMC.
