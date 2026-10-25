@@ -25,6 +25,8 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional("varhr"): sensor.sensor_schema(accuracy_decimals=0),
     cv.Optional("pwm1"): sensor.sensor_schema(accuracy_decimals=0),
     cv.Optional("pwm2"): sensor.sensor_schema(accuracy_decimals=0),
+    cv.Optional("self_controlled"): binary_sensor.binary_sensor_schema(),
+    cv.Optional("actual_mode"): text_sensor.text_sensor_schema(),
     cv.Optional("temperature_1"): sensor.sensor_schema(unit_of_measurement="°C", accuracy_decimals=1, device_class="temperature"),
     cv.Optional("humidity_1"): sensor.sensor_schema(unit_of_measurement="%", accuracy_decimals=0, device_class="humidity"),
     cv.Optional("temperature_2"): sensor.sensor_schema(unit_of_measurement="°C", accuracy_decimals=1, device_class="temperature"),
@@ -68,6 +70,12 @@ async def to_code(config):
         if key in config:
             s = await sensor.new_sensor(config[key])
             cg.add(getattr(var, setter)(s))
+    if "self_controlled" in config:
+        s = await binary_sensor.new_binary_sensor(config["self_controlled"])
+        cg.add(var.set_self_controlled_sensor(s))
+    if "actual_mode" in config:
+        s = await text_sensor.new_text_sensor(config["actual_mode"])
+        cg.add(var.set_actual_mode_sensor(s))
     if "raw_rx" in config:
         s = await text_sensor.new_text_sensor(config["raw_rx"])
         cg.add(var.set_raw_rx_sensor(s))
