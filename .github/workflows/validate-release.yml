@@ -1,0 +1,93 @@
+name: Validate ESPHome and release version
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Check version consistency
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || '' }}
+        run: |
+          python - <<'PY'
+          import os
+          import pathlib
+          import re
+
+          pkg = pathlib.Path("packages/easyhome.yaml").read_text(encoding="utf-8")
+          example = pathlib.Path("examples/aldes-easyhome.yaml").read_text(encoding="utf-8")
+          def match(pattern, text, label):
+              found = re.search(pattern, text, re.MULTILINE)
+              if not found:
+                  raise SystemExit(f"Missing version: {label}")
+              return found.group(1)
+
+          package_version = match(r'^# Release package v(\d+\.\d+\.\d+)\b', pkg, "package header")
+          firmware_version = match(r'return\s+\{"(\d+\.\d+\.\d+)"\};', pkg, "firmware sensor")
+          example_version = match(r'^# ESPHome EasyHome v(\d+\.\d+\.\d+)\b', example, "example header")
+          if len({package_version, firmware_version, example_version}) != 1:
+              raise SystemExit(f"Version mismatch: package={package_version}, sensor={firmware_version}, example={example_version}")
+          tag = os.environ.get("RELEASE_TAG", "")
+          if tag and tag != f"v{package_version}":
+              raise SystemExit(f"Release tag {tag} does not match v{package_version}")
+          print(f"Version consistent: v{package_version}" + (f" / tag {tag}" if tag else ""))
+          PY
+
+      - name: Install ESPHome
+        run: python -m pip install 'esphome>=2026.9,<2027'
+
+      - name: Prepare offline CI configuration
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          ci = Path(".ci-build")
+          ci.mkdir(exist_ok=True)
+          package = Path("packages/easyhome.yaml").read_text(encoding="utf-8")
+          package = package.replace(
+              "type: git\n      url: https://github.com/Fredzxda/esphome-aldes-easyhome\n      ref: main",
+              "type: local\n      path: ../components",
+          )
+          if "type: local" not in package:
+              raise SystemExit("Could not switch external component to local source")
+          (ci / "easyhome.yaml").write_text(package, encoding="utf-8")
+          example = Path("examples/aldes-easyhome.yaml").read_text(encoding="utf-8")
+          example = example.replace(
+              "github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@main",
+              "easyhome.yaml",
+          )
+          if "github://" in example:
+              raise SystemExit("Could not switch example to local package")
+          (ci / "device.yaml").write_text(example, encoding="utf-8")
+          (ci / "secrets.yaml").write_text(
+              'aldes_easyhome_api_key: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="\n'
+              'wifi_ssid: "CI-test"\n'
+              'wifi_password: "ci-placeholder-password"\n',
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Validate ESPHome configuration
+        run: esphome config .ci-build/device.yaml
+
+      - name: Compile ESPHome firmware
+        run: esphome compile .ci-build/device.yaml
