@@ -70,14 +70,21 @@ aldes_ibus:
     id: ibus_varhr
     name: "Variation humidite"
   pwm1:
-    name: "PWM QAI 1 (brut)"
+    name: "PWM Actuel"
+    entity_category: diagnostic
   pwm2:
-    name: "PWM QAI 2 (brut)"
+    name: "PWM Min"
+    entity_category: diagnostic
+  self_controlled:
+    name: "Self Controlled"
+    entity_category: diagnostic
+  actual_mode:
+    name: "Mode VMC Actuel"
 
 # Requested-mode selector: mirrors ESP32 persisted/queued mode, not confirmed VMC feedback.
 select:
   - platform: template
-    name: "iBUS Mode VMC"
+    name: "Mode VMC Demandé"
     id: ibus_mode_vmc
     update_interval: 5s
     lambda: |-
