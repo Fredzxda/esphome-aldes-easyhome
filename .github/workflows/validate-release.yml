@@ -64,7 +64,7 @@ jobs:
           ci.mkdir(exist_ok=True)
           package = Path("packages/easyhome.yaml").read_text(encoding="utf-8")
           package = package.replace(
-              "type: git\n      url: https://github.com/Fredzxda/esphome-aldes-easyhome\n      ref: main",
+              "type: git\n      url: https://github.com/Fredzxda/esphome-aldes-easyhome\n      ref: dev/vmc-mode-control",
               "type: local\n      path: ../components",
           )
           if "type: local" not in package:
@@ -72,7 +72,7 @@ jobs:
           (ci / "easyhome.yaml").write_text(package, encoding="utf-8")
           example = Path("examples/aldes-easyhome.yaml").read_text(encoding="utf-8")
           example = example.replace(
-              "github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@main",
+              "github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@dev/vmc-mode-control",
               "!include easyhome.yaml",
           )
           if "github://" in example:
