@@ -2,7 +2,7 @@
 
 Intégration **locale** d'une VMC **Aldes EasyHOME PureAIR Premium / Connect** dans **Home Assistant** avec **ESPHome**, sans AldesConnect Box ni cloud Aldes.
 
-> **Version 1.0.1.** Intégration locale de la VMC via iBUS : mesures, diagnostics et commandes de mode depuis Home Assistant. Projet communautaire non officiel, indépendant d'Aldes.
+> **Version 1.1.0.** Intégration locale de la VMC via iBUS : mesures, diagnostics et commandes de mode depuis Home Assistant. Projet communautaire non officiel, indépendant d'Aldes.
 
 ## Origine du projet et montage électronique
 
@@ -84,9 +84,9 @@ Les identifiants Wi-Fi et la clé API restent **dans la configuration ESPHome lo
 
 ## Version et branche
 
-La branche **`main`** contient la version **1.0.1** décrite ici. Les développements futurs sont réalisés séparément sur `dev/ibus-rx`.
+La branche **`main`** contient la version **1.1.0** décrite ici. Les développements futurs sont réalisés séparément sur `dev/ibus-rx`.
 
-## Version 1.0.1 — inventaire des entités
+## Version 1.1.0 — inventaire des entités
 
 ### Pilotage
 
@@ -124,21 +124,21 @@ Les noms des pièces sont définis par `piece_1`, `piece_2` et `piece_3` dans le
 - Connexion Home Assistant native via ESPHome, Wi-Fi et mise à jour OTA.
 - Mémorisation du mode demandé sur l'ESP32 après redémarrage.
 
-**Points à connaître pour la v1.0.1 :** décodage de certains octets des trames longues incomplet ; calcul QAI estimatif, non validé par Aldes ; compatibilité testée principalement avec la carte Aldes Himalaya01M1b et le montage de Quentin ; absence de retour d'acquittement fiable du mode VMC. Vérifiez les commandes sur votre propre installation avant tout usage non supervisé.
+**Points à connaître pour la v1.1.0 :** décodage de certains octets des trames longues incomplet ; calcul QAI estimatif, non validé par Aldes ; compatibilité testée principalement avec la carte Aldes Himalaya01M1b et le montage de Quentin ; absence de retour d'acquittement fiable du mode VMC. Vérifiez les commandes sur votre propre installation avant tout usage non supervisé.
 
 ## Licence
 
 GPL-3.0 — voir [LICENSE](LICENSE).
 
 
-## Développement : gestion des LEDs et version du firmware
+## Gestion des LEDs et version du firmware
 
-La branche `dev/led_management` ajoute :
+La branche `main` ajoute :
 
-- Un capteur de diagnostic Home Assistant **Version firmware Aldes**, indiquant la version définie dans le package GitHub et compilée dans l'ESP32 (actuellement `1.0.1-dev` sur cette branche). La valeur **ne se met pas à jour à distance** : elle change après compilation et installation d'un nouveau firmware.
+- Un capteur de diagnostic Home Assistant **Version firmware Aldes**, indiquant la version définie dans le package GitHub et compilée dans l'ESP32 (actuellement `1.1.0` dans cette version). La valeur **ne se met pas à jour à distance** : elle change après compilation et installation d'un nouveau firmware.
 - Trois contrôles Home Assistant : **Mode nuit LEDs** (interrupteur désactivé par défaut), **Début mode nuit LEDs** (23:00 par défaut) et **Fin mode nuit LEDs** (07:00 par défaut). Les deux horaires sont réglables à la minute et conservés après redémarrage. Les LEDs sont éteintes uniquement si le mode nuit est activé et si l'heure Home Assistant est dans la plage configurée. Si l'heure n'est pas disponible, elles restent autorisées.
 - GPIO25 réservé à la LED d'alimentation, GPIO26 à l'activité RX, GPIO27 à l'état Wi-Fi/API. La réservation UART secondaire passe sur GPIO32. Vérifier la polarité et le comportement réel de la LED GPIO25 sur le PCB avant validation.
 
 **Important :** l'association automatique du numéro de version aux tags GitHub nécessite une étape de publication supplémentaire (workflow GitHub Actions et génération de la configuration avant compilation). Le capteur actuel reflète une valeur définie dans le package GitHub, et non dans le YAML personnel de l'utilisateur. Cette valeur reste à synchroniser automatiquement avec les tags lors du processus de publication ; elle ne lit pas les tags GitHub en temps réel.
 
-Pour tester la branche, importer `packages/easyhome.yaml@dev/led_management` et son exemple associé. La branche `main` et les tags publiés ne sont pas modifiés.
+Pour tester la branche, importer `packages/easyhome.yaml@main` et son exemple associé. La branche `main` et les tags publiés ne sont pas modifiés.
