@@ -73,7 +73,7 @@ jobs:
           example = Path("examples/aldes-easyhome.yaml").read_text(encoding="utf-8")
           example = example.replace(
               "github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@main",
-              "{file: easyhome.yaml}",
+              "!include easyhome.yaml",
           )
           if "github://" in example:
               raise SystemExit("Could not switch example to local package")
