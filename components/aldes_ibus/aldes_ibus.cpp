@@ -198,6 +198,28 @@ void AldesIBus::parse_() {
                               (uint16_t(this->buffer_[25]) << 8);
         if (this->pwm1_sensor_) this->pwm1_sensor_->publish_state(pwm1);
         if (this->pwm2_sensor_) this->pwm2_sensor_->publish_state(pwm2);
+        if (this->self_controlled_sensor_) this->self_controlled_sensor_->publish_state(pwm2 >= 750);
+        // Byte 11 (zero-based offset 10) is the reported VMC mode.
+        // Byte 10 (offset 9) is PWM1's high byte in this frame.
+        const uint8_t actual_mode = this->buffer_[10];
+        const char *mode_label = nullptr;
+        switch (actual_mode) {
+          case 0x10: mode_label = "Programmation"; break;
+          case 0x21: mode_label = "Vacances"; break;
+          case 0x43: mode_label = "Quotidien"; break;
+          case 0x65: mode_label = "Boost"; break;
+          case 0x87: mode_label = "Invites"; break;
+          default: break;
+        }
+        if (this->actual_mode_sensor_) {
+          if (mode_label) {
+            this->actual_mode_sensor_->publish_state(mode_label);
+          } else {
+            char unknown[16];
+            snprintf(unknown, sizeof(unknown), "Inconnu 0x%02X", actual_mode);
+            this->actual_mode_sensor_->publish_state(unknown);
+          }
+        }
         // Standard frame byte positions 15-20 (one-based):
         // temperature encoded with -6 C offset plus quarter degrees, humidity as integer percent.
         for (size_t room = 0; room < 3; ++room) {
