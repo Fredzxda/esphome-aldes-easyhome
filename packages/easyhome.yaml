@@ -77,7 +77,6 @@ aldes_ibus:
     entity_category: diagnostic
   self_controlled:
     name: "Self Controlled"
-    entity_category: diagnostic
   actual_mode:
     name: "Mode VMC Actuel"
 
