@@ -115,55 +115,69 @@ button:
     name: "Redemarrer Aldes EasyHome"
     entity_category: diagnostic
 
-# Experimental QAI model: maximum of humidity variation and CO2 contribution.
+# Local QAI reconstruction from historical Aldes cloud records (see docs/qai-reconstruction.md).
+# Raw iBUS humidity is used; VarHR is NOT the humidity QAI.
+# All QAI entities stay unavailable until the three humidity probes and CO2 are received.
 sensor:
-  - platform: copy
-    source_id: ibus_varhr
+  - platform: template
+    id: ibus_qai_humid_wet
+    name: "QAI humidite elevee"
+    device_class: aqi
+    entity_category: diagnostic
+    accuracy_decimals: 0
+    update_interval: 10s
+    lambda: 'return id(easyhome_ibus).qai_humidity_wet();'
+
+  - platform: template
+    id: ibus_qai_humid_dry
+    name: "QAI air sec"
+    device_class: aqi
+    entity_category: diagnostic
+    accuracy_decimals: 0
+    update_interval: 10s
+    lambda: 'return id(easyhome_ibus).qai_humidity_dry();'
+
+  - platform: template
+    id: ibus_qai_humidity
     name: "QAI Humidite"
     device_class: aqi
     entity_category: diagnostic
     accuracy_decimals: 0
+    update_interval: 10s
+    lambda: 'return id(easyhome_ibus).qai_humidity();'
 
   - platform: template
     id: ibus_qai_co2
     name: "QAI contribution CO2"
     device_class: aqi
-    accuracy_decimals: 1
     entity_category: diagnostic
-    filters:
-      - lambda: return roundf(x * 10.0f) / 10.0f;
+    accuracy_decimals: 0
     update_interval: 10s
-    lambda: |-
-      if (!id(ibus_co2).has_state()) return NAN;
-      return 0.065f * id(ibus_co2).state - 28.0f;
+    lambda: 'return id(easyhome_ibus).qai_co2();'
 
   - platform: template
     id: ibus_qai_index
     name: "QAI Index"
     device_class: aqi
-    accuracy_decimals: 1
-    filters:
-      - lambda: return roundf(x * 10.0f) / 10.0f;
+    accuracy_decimals: 0
     update_interval: 10s
-    lambda: |-
-      if (!id(ibus_co2).has_state() || !id(ibus_varhr).has_state()) return NAN;
-      return std::min(100.0f, std::max(0.0f, std::max(id(ibus_varhr).state, 0.065f * id(ibus_co2).state - 28.0f)));
+    lambda: 'return id(easyhome_ibus).qai_index();'
 
 text_sensor:
   - platform: template
     name: "Version firmware Aldes"
     entity_category: diagnostic
     icon: mdi:information-outline
-    lambda: 'return {"1.1.0"};'
+    lambda: 'return {"1.1.0-dev-qai"};'
     update_interval: 60s
   - platform: template
     name: "Polluant dominant"
     update_interval: 10s
     lambda: |-
-      if (!id(ibus_co2).has_state() || !id(ibus_varhr).has_state())
-        return {};
-      const float qai_co2 = 0.065f * id(ibus_co2).state - 28.0f;
-      return std::string(id(ibus_varhr).state >= qai_co2 ? "Humidité" : "CO2");
+      const float humidity = id(easyhome_ibus).qai_humidity();
+      const float co2 = id(easyhome_ibus).qai_co2();
+      if (std::isnan(humidity) || std::isnan(co2)) return {};
+      return std::string(humidity >= co2 ? "Humidité" : "CO2");
 
 # GPIO25 is released from the UART reservation; verify LED polarity on the PCB.
 output:
