@@ -138,7 +138,7 @@ Les entités sont présentées ci-dessous selon les rubriques de l'appareil ESPH
 | **Variation humidite** | Indicateur VarHR transmis par la VMC |
 | **PWM QAI 1 (brut)** | Valeur brute PWM QAI 1 remontée par la VMC |
 | **PWM QAI 2 (brut)** | Valeur brute PWM QAI 2 remontée par la VMC |
-| **QAI Index** | Estimation expérimentale de l'indice de qualité de l'air, de 0 à 100 |
+| **QAI Index** | Estimation locale du QAI global : maximum des contributions humidité et CO₂ (0–100) |
 | **Polluant dominant** | Contribution prédominante estimée : humidité ou CO₂ |
 
 #### Diagnostics
@@ -153,12 +153,14 @@ Les entités sont présentées ci-dessous selon les rubriques de l'appareil ESPH
 | **iBUS Checksums invalides** | Compteur d'échecs de checksum |
 | **iBUS Erreurs de synchronisation** | Compteur d'erreurs de synchronisation |
 | **iBUS Octets recus** | Compteur d'octets reçus |
-| **QAI Humidite** | Copie de VarHR, utilisée comme contribution humidité |
-| **QAI contribution CO2** | Contribution CO₂ estimée pour le calcul QAI |
+| **QAI Humidite** | Maximum des pénalités humidité élevée et air trop sec (humidité brute des 3 pièces) |
+| **QAI humidite elevee** | Contribution de la plus forte humidité brute, barème non linéaire |
+| **QAI air sec** | Contribution de la plus faible humidité brute lorsqu’elle est inférieure à 50 % |
+| **QAI contribution CO2** | Contribution CO₂ selon le barème par plages et l’arrondi entier |
 | **Version firmware Aldes** | Version définie dans le package GitHub et compilée dans l'ESP32 |
 | **Redemarrer Aldes EasyHome** | Bouton de redémarrage de l'ESP32 |
 
-**À noter :** le calcul QAI est expérimental et non certifié par Aldes. Certains champs iBUS restent inconnus. Le capteur `self_controlled` n'est pas inclus dans cette version.
+**À noter :** le calcul QAI est une reconstruction expérimentale du QAI cloud Aldes, sans météo extérieure et sans lissage. Les valeurs de l’indice global attendent les trois sondes d’humidité et le CO₂. [Méthode, formules, statistiques et limites](docs/qai-reconstruction.md). Certains champs iBUS restent inconnus. Le capteur `self_controlled` n'est pas inclus dans cette version.
 
 ### Fonctions
 
@@ -225,7 +227,8 @@ Les identifiants Wi-Fi et la clé API restent **dans la configuration ESPHome lo
 
 - [`examples/aldes-easyhome.yaml`](examples/aldes-easyhome.yaml) : **fichier d'exemple à copier dans ESPHome**, contenant les substitutions et la configuration propre à l'appareil.
 - [`packages/easyhome.yaml`](packages/easyhome.yaml) : **package partagé**, regroupant le protocole UART, les entités Home Assistant et la gestion des LEDs.
-- [`components/aldes_ibus/`](components/aldes_ibus/) : **composant externe ESPHome** qui décode les réponses iBUS et émet les commandes de mode.
+- [`components/aldes_ibus/`](components/aldes_ibus/) : **composant externe ESPHome** qui décode les réponses iBUS, émet les commandes de mode et calcule le QAI local.
+- [`docs/qai-reconstruction.md`](docs/qai-reconstruction.md) : **journal de rétro-ingénierie QAI** : sources, formules, validations et anomalies.
 
 ## Licence
 
