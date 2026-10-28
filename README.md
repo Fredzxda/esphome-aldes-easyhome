@@ -2,7 +2,7 @@
 
 Intégration **locale** d'une VMC **Aldes EasyHOME PureAIR Premium / Connect** dans **Home Assistant** avec **ESPHome**, sans AldesConnect Box ni cloud Aldes.
 
-> **Version 1.1.0.** Intégration locale de la VMC via iBUS : mesures, diagnostics et commandes de mode depuis Home Assistant. Projet communautaire non officiel, indépendant d'Aldes.
+> Intégration locale de la VMC via iBUS : mesures, diagnostics et commandes de mode depuis Home Assistant. Projet communautaire non officiel, indépendant d'Aldes.
 
 ## Origine du projet et montage électronique
 
@@ -55,7 +55,7 @@ Exemple de trame (Mode Boost demandé) : `FD 87 11 4B 02 02 00 00 65 FF 00 00 FF
 | 16 | `4A` | Pattern de fin de payload |
 | 17 | Variable | Checksum calculé sur les 17 octets précédents |
 
-\* Le mode Vacances n'est pour l'instant que partiellement implémenté. Si les plages horaires et les modes sont communiqués vers la VMC, les trames pourraient être plus longues. Poour l'instant, seule la valeur 11, correspondant à des commandes de 18 octets, a été observée.
+\* Le mode Vacances n'est pour l'instant que partiellement implémenté. Si les plages horaires et les modes sont communiqués vers la VMC, les trames pourraient être plus longues. Pour l'instant, seule la valeur 11, correspondant à des commandes de 18 octets, a été observée.
 
 Codes de mode actuellement utilisés :
 
@@ -123,7 +123,7 @@ Les entités sont présentées ci-dessous selon les rubriques de l'appareil ESPH
 
 | Entité | Description |
 | --- | --- |
-| **iBUS Mode VMC** | Choix du mode : Programmation, Vacances, Quotidien, Boost ou Invités ; affiche la demande envoyée et non une confirmation de la VMC |
+| **Mode VMC Demandé** | Sélecteur permettant de demander à la VMC un mode (Programmation, Vacances, Quotidien, Boost ou Invités). Il affiche la demande mémorisée et envoyée par l'ESP32, pas nécessairement le mode réellement appliqué. |
 | **Mode nuit LEDs** | Interrupteur d'activation du mode nuit, désactivé par défaut |
 | **Début mode nuit LEDs** | Heure de début du mode nuit, réglable à la minute ; valeur initiale 23:00 |
 | **Fin mode nuit LEDs** | Heure de fin du mode nuit, réglable à la minute ; valeur initiale 07:00 |
@@ -136,10 +136,12 @@ Les entités sont présentées ci-dessous selon les rubriques de l'appareil ESPH
 | **Humidité [pièce 1 à 3]** | Humidité relative de chacune des trois pièces, en % |
 | **CO2** | Concentration en CO₂ reçue de la VMC, en ppm |
 | **Variation humidite** | Indicateur VarHR transmis par la VMC |
-| **PWM QAI 1 (brut)** | Valeur brute PWM QAI 1 remontée par la VMC |
-| **PWM QAI 2 (brut)** | Valeur brute PWM QAI 2 remontée par la VMC |
+| **PWM Actuel** | Valeur PWM remontée par la VMC, représentative de sa ventilation effective (interprétation empirique). |
+| **PWM Cible QAI** | Valeur PWM liée à la régulation de qualité de l'air ; ce n'est pas un minimum absolu applicable à tous les modes. |
 | **QAI Index** | Estimation locale du QAI global : maximum des contributions humidité et CO₂ (0–100) |
-| **Polluant dominant** | Contribution prédominante estimée : humidité ou CO₂ |
+| **Polluant dominant** | Contribution prédominante estimée : humidité ou CO₂ ; l'humidité est privilégiée en cas d'égalité. |
+| **Mode VMC Actuel** | Mode effectivement déclaré par la VMC dans ses réponses iBUS. Il peut différer du mode demandé, notamment lorsque la régulation interne réagit à la qualité de l'air. |
+| **Self Controlled** | Indique que la VMC a repris la maîtrise de sa ventilation en raison d'un besoin de qualité de l'air. L'état est actuellement déduit de `PWM Cible QAI >= 750` ; il ne distingue pas les niveaux de régulation. |
 
 #### Diagnostics
 
@@ -160,13 +162,22 @@ Les entités sont présentées ci-dessous selon les rubriques de l'appareil ESPH
 | **Version firmware Aldes** | Version définie dans le package GitHub et compilée dans l'ESP32 |
 | **Redemarrer Aldes EasyHome** | Bouton de redémarrage de l'ESP32 |
 
-**À noter :** le calcul QAI est une reconstruction expérimentale du QAI cloud Aldes, sans météo extérieure et sans lissage. Les valeurs de l’indice global attendent les trois sondes d’humidité et le CO₂. [Méthode, formules, statistiques et limites](docs/qai-reconstruction.md). Certains champs iBUS restent inconnus. Le capteur `self_controlled` n'est pas inclus dans cette version.
+**À noter :** le calcul QAI est une reconstruction expérimentale du QAI cloud Aldes, sans météo extérieure et sans lissage. Les valeurs de l’indice global attendent les trois sondes d’humidité et le CO₂. [Méthode, formules, statistiques et limites](docs/qai-reconstruction.md). Certains champs iBUS restent inconnus.
 
 ### Fonctions
 
 #### Gestion du mode de la VMC
 
-Home Assistant permet de demander les modes **Programmation**, **Vacances**, **Quotidien**, **Boost** et **Invités**. Le mode choisi est mémorisé sur l'ESP32, restauré après redémarrage et envoyé périodiquement sur iBUS. L'affichage du sélecteur représente **la commande demandée**, pas une confirmation d'exécution par la VMC.
+Home Assistant permet de demander les modes **Programmation**, **Vacances**, **Quotidien**, **Boost** et **Invités**. Le mode choisi est mémorisé sur l'ESP32, restauré après redémarrage et envoyé périodiquement sur iBUS. L'affichage du sélecteur **Mode VMC Demandé** représente la commande demandée, pas une confirmation d'exécution par la VMC. Le capteur **Mode VMC Actuel** est, lui, décodé à partir de la réponse iBUS de la VMC : il représente le mode qu'elle applique effectivement, lequel peut évoluer automatiquement en fonction de la qualité de l'air de la maison.
+
+#### Reprise automatique de la ventilation : Self Controlled
+
+Lorsque la qualité de l'air se dégrade, la régulation interne Aldes peut reprendre la main sur la vitesse de ventilation, même si Home Assistant a demandé un autre mode. Les observations suggèrent **deux niveaux de reprise de contrôle** :
+
+- **Premier niveau** : la VMC impose une ventilation élevée, mais laisse encore le choix entre les deux modes rapides **Boost** et **Invités**.
+- **Second niveau** : la VMC impose la vitesse maximale, qui semble correspondre au mode **Invités** ; cette correspondance reste à confirmer sur les trames iBUS.
+
+Ces deux niveaux décrivent le comportement supposé de la régulation Aldes, **pas deux états actuellement exposés par ESPHome**. Le capteur binaire **Self Controlled** passe à `on` lorsque `PWM Cible QAI` atteint au moins **750**, seuil déduit des observations ; il ne mesure ni directement le QAI cloud ni le niveau de reprise de contrôle. La correspondance exacte entre les niveaux, les vitesses, les seuils et les codes iBUS reste à vérifier. Voir [les observations non élucidées](docs/observations-non-elucidees.md).
 
 #### Gestion des LEDs
 
@@ -219,6 +230,8 @@ Le fichier d'exemple complet configure également `esp32dev`, l'API native Home 
 ```yaml
 packages:
   easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@main
+  # Pour tester une branche de développement, remplacez la ligne ci-dessus par :
+  # easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@dev/nom-de-branche
 ```
 
 Les identifiants Wi-Fi et la clé API restent **dans la configuration ESPHome locale**, jamais dans ce dépôt public. L'exemple désactive les logs série UART0 (`logger: baud_rate: 0`) car ses broches servent au bus, et définit **`logger: level: ERROR`** pour n'afficher que les erreurs. Pour un dépannage ponctuel, remplacez `ERROR` par `DEBUG` dans votre YAML local puis recompilez.
@@ -229,6 +242,7 @@ Les identifiants Wi-Fi et la clé API restent **dans la configuration ESPHome lo
 - [`packages/easyhome.yaml`](packages/easyhome.yaml) : **package partagé**, regroupant le protocole UART, les entités Home Assistant et la gestion des LEDs.
 - [`components/aldes_ibus/`](components/aldes_ibus/) : **composant externe ESPHome** qui décode les réponses iBUS, émet les commandes de mode et calcule le QAI local.
 - [`docs/qai-reconstruction.md`](docs/qai-reconstruction.md) : **journal de rétro-ingénierie QAI** : sources, formules, validations et anomalies.
+- [`docs/observations-non-elucidees.md`](docs/observations-non-elucidees.md) : **observations et hypothèses non confirmées** sur les modes, les PWM et la reprise automatique de contrôle.
 
 ## Licence
 
