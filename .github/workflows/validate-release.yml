@@ -75,7 +75,7 @@ jobs:
               "github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@main",
               "!include easyhome.yaml",
           )
-          if "github://" in example:
+          if "github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@main" in example.split("  # Pour tester")[0]:
               raise SystemExit("Could not switch example to local package")
           (ci / "device.yaml").write_text(example, encoding="utf-8")
           (ci / "secrets.yaml").write_text(
