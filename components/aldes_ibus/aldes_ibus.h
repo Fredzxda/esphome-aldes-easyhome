@@ -22,6 +22,8 @@ class AldesIBus : public Component, public uart::UARTDevice {
   void send_poll();
   void send_boost();
   void queue_mode(uint8_t mode);
+  void set_corrected_humidity_enabled(bool enabled);
+  void publish_room_humidities_();
   uint8_t get_requested_mode() const { return pending_mode_; }
   void set_frames_ok_sensor(sensor::Sensor *s) { frames_ok_sensor_ = s; }
   void set_checksum_bad_sensor(sensor::Sensor *s) { checksum_bad_sensor_ = s; }
@@ -44,10 +46,10 @@ class AldesIBus : public Component, public uart::UARTDevice {
   // Wait for all probes to have published before calculating humidity QAI.
   float qai_humidity_wet() const {
     if (!room_sensors_[1] || !room_sensors_[3] || !room_sensors_[5] ||
-        !room_sensors_[1]->has_state() || !room_sensors_[3]->has_state() ||
-        !room_sensors_[5]->has_state()) return NAN;
-    const float maximum = std::max(room_sensors_[1]->state,
-                          std::max(room_sensors_[3]->state, room_sensors_[5]->state));
+        ! !raw_humidity_valid_[0] || !raw_humidity_valid_[1] ||
+        !raw_humidity_valid_[2]) return NAN;
+    const float maximum = std::max(raw_humidity_[0],
+                          std::max(raw_humidity_[1], raw_humidity_[2]));
     const int h = static_cast<int>(std::floor(maximum));
     if (h <= 50) return 0;
     if (h <= 60) return (5 * (h - 50)) / 2;
@@ -61,8 +63,8 @@ class AldesIBus : public Component, public uart::UARTDevice {
     if (!room_sensors_[1] || !room_sensors_[3] || !room_sensors_[5] ||
         !room_sensors_[1]->has_state() || !room_sensors_[3]->has_state() ||
         !room_sensors_[5]->has_state()) return NAN;
-    const float minimum = std::min(room_sensors_[1]->state,
-                          std::min(room_sensors_[3]->state, room_sensors_[5]->state));
+    const float minimum = std::min(raw_humidity_[0],
+                          std::min(raw_humidity_[1], raw_humidity_[2]));
     return std::min(100.0f, std::max(0.0f, std::floor(2.5f * (50.0f - minimum))));
   }
   float qai_co2() const {
@@ -115,6 +117,11 @@ class AldesIBus : public Component, public uart::UARTDevice {
   sensor::Sensor *co2_sensor_{nullptr};
   sensor::Sensor *varhr_sensor_{nullptr};
   sensor::Sensor *room_sensors_[6]{};
+  float raw_humidity_[3]{};
+  float room_temperature_[3]{};
+  bool raw_humidity_valid_[3]{};
+  bool room_temperature_valid_[3]{};
+  bool corrected_humidity_enabled_{false};
   sensor::Sensor *pwm1_sensor_{nullptr};
   sensor::Sensor *pwm2_sensor_{nullptr};
   binary_sensor::BinarySensor *self_controlled_sensor_{nullptr};
