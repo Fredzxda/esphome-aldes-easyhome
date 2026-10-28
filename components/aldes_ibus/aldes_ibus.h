@@ -24,6 +24,8 @@ class AldesIBus : public Component, public uart::UARTDevice {
   void queue_mode(uint8_t mode);
   void set_corrected_humidity_enabled(bool enabled);
   void publish_room_humidities_();
+  float get_raw_humidity(size_t room) const;
+  float get_corrected_humidity(size_t room) const;
   uint8_t get_requested_mode() const { return pending_mode_; }
   void set_frames_ok_sensor(sensor::Sensor *s) { frames_ok_sensor_ = s; }
   void set_checksum_bad_sensor(sensor::Sensor *s) { checksum_bad_sensor_ = s; }
