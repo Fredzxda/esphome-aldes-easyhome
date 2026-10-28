@@ -7,7 +7,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/Fredzxda/esphome-aldes-easyhome
-      ref: main
+      ref: humidite-corrigee
     components: [aldes_ibus]
     refresh: always
 
@@ -204,6 +204,16 @@ output:
 
 # User controls in Home Assistant (not diagnostic entities).
 switch:
+  - platform: template
+    id: ibus_humidity_corrected
+    name: "Afficher humidités corrigées"
+    icon: mdi:water-percent
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    on_turn_on:
+      - lambda: 'id(easyhome_ibus).set_corrected_humidity_enabled(true);'
+    on_turn_off:
+      - lambda: 'id(easyhome_ibus).set_corrected_humidity_enabled(false);'
   - platform: template
     id: ibus_night_enabled
     name: "Mode nuit LEDs"
