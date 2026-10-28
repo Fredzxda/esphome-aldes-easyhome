@@ -60,7 +60,7 @@ Le CO₂ était précédemment étudié séparément (219 correspondances exacte
 
 ## Vérifications à réaliser
 
-1. Compiler le package sur la branche de développement et vérifier l'apparition des entités.
+1. Compiler le package depuis `main` et vérifier l'apparition des entités.
 2. Vérifier sur l'appareil les valeurs limites : 50/51, 60/61/62, 70/71/72, 75/76 % et 400/1200/1400 ppm.
 3. Comparer les contributions et l'indice global à de nouvelles observations réelles.
-4. Ne fusionner dans `main` qu'après validation matérielle.
+4. Comparer les mesures et le comportement de régulation après compilation matérielle ; conserver les anomalies documentées avant toute nouvelle modification de l'algorithme.
