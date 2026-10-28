@@ -88,6 +88,22 @@ Le 25 octobre 2026, le capteur Home Assistant `sensor.aldes_easyhome_ibus_dernie
 
 ---
 
+## 5. Programmation horaire : lieu de stockage et autonomie
+
+**Statut : inconnu, test à prévoir.**
+
+L'intégration peut demander le mode `Programmation` (`0x10`), mais ne permet pas de définir les plages horaires ni les modes associés. Les trames de commande de mode de 18 octets observées ne démontrent pas comment la programmation est configurée ni où elle est mémorisée.
+
+**Hypothèses à départager :** calendrier stocké dans l'AldesConnect Box, calendrier transmis et mémorisé dans la VMC, ou fonctionnement partagé. Un test avec programmation préalablement configurée, puis déconnexion de la Box, devra observer les transitions du `Mode VMC Actuel` et les trames iBUS sur plusieurs plages horaires. Il faudra distinguer l'absence de Box du comportement éventuel de l'ESP32 qui réémet ses commandes périodiquement.
+
+## 6. Humidités corrigées `hr*co`
+
+**Statut : présentes dans des exports historiques AldesConnect, non décodées dans l'intégration ESPHome actuelle.**
+
+Les `hr*co` sont des valeurs d'humidité corrigées ou retraitées dans les données historiques. La formule exacte et leur éventuelle présence dans les trames iBUS restent inconnues. Les trois entités `Humidité` publiées par ESPHome correspondent aux humidités brutes décodées dans les réponses standard. Le QAI local est reconstruit à partir de ces humidités brutes et du CO₂, **sans utiliser `hr*co`**. Voir [la méthode QAI](qai-reconstruction.md).
+
+---
+
 ## Méthode pour les nouvelles observations
 
 Pour chaque cas, noter :
