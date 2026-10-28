@@ -14,6 +14,27 @@ static constexpr size_t MAX_BUFFER = 1024;
 static constexpr uint32_t FRAME_TIMEOUT_MS = 500;
 static constexpr uint32_t MODE_PREF_KEY = 0xA1DE5E01;
 
+void AldesIBus::set_corrected_humidity_enabled(bool enabled) {
+  if (corrected_humidity_enabled_ == enabled) return;
+  corrected_humidity_enabled_ = enabled;
+  publish_room_humidities_();
+}
+
+void AldesIBus::publish_room_humidities_() {
+  for (size_t room = 0; room < 3; ++room) {
+    auto *sensor = room_sensors_[room * 2 + 1];
+    if (!sensor || !raw_humidity_valid_[room]) continue;
+    float humidity = raw_humidity_[room];
+    if (corrected_humidity_enabled_ && room_temperature_valid_[room] &&
+        room_temperature_[room] > 20.0f) {
+      const double t = room_temperature_[room];
+      const double factor = std::exp(32.770308 * (20.0 / 501.1436 - t / (481.1436 + t)));
+      humidity = static_cast<float>(humidity * factor);
+    }
+    sensor->publish_state(humidity);
+  }
+}
+
 void AldesIBus::dump_config() {
   ESP_LOGCONFIG(TAG, "Aldes iBUS transceiver (periodic mode polling, 10s)");
 }
@@ -224,17 +245,19 @@ void AldesIBus::parse_() {
         // temperature encoded with -6 C offset plus quarter degrees, humidity as integer percent.
         for (size_t room = 0; room < 3; ++room) {
           const size_t offset = 14 + room * 2;
-          if (this->room_sensors_[room * 2]) {
-            // Temperature: six-bit integer with -6 C offset;
-            // low two bits encode 0.25 C increments.
-            const uint8_t encoded = this->buffer_[offset];
-            const float temperature = float(encoded >> 2) - 6.0f +
-                                      float(encoded & 0x03) * 0.25f;
+          // Preserve raw iBUS values independently of the HA display selection.
+          // QAI and all internal humidity calculations use raw_humidity_.
+          const uint8_t encoded = this->buffer_[offset];
+          const float temperature = float(encoded >> 2) - 6.0f +
+                                    float(encoded & 0x03) * 0.25f;
+          this->room_temperature_[room] = temperature;
+          this->room_temperature_valid_[room] = true;
+          this->raw_humidity_[room] = this->buffer_[offset + 1];
+          this->raw_humidity_valid_[room] = true;
+          if (this->room_sensors_[room * 2])
             this->room_sensors_[room * 2]->publish_state(temperature);
-          }
-          if (this->room_sensors_[room * 2 + 1])
-            this->room_sensors_[room * 2 + 1]->publish_state(this->buffer_[offset + 1]);
         }
+        this->publish_room_humidities_();
       }
       ESP_LOGD(TAG, "VMC frame (%u bytes): %s", (unsigned) size, hex.c_str());
       // Expose only the VMC response, never the locally echoed TX command.
