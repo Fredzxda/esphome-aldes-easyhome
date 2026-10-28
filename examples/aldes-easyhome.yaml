@@ -32,4 +32,6 @@ wifi:
   password: !secret wifi_password
 
 packages:
-  easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@dev/vmc-mode-control
+  easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@main
+  # Pour tester une branche de développement, remplacer la ligne active ci-dessus par :
+  # easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@dev/nom-de-branche
