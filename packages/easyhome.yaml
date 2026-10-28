@@ -1,4 +1,4 @@
-# Release package v1.1.0. Import from GitHub with packages:
+# Release package v1.2.0. Import from GitHub with packages:
 #   easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@main
 #
 # Manual Boost TX test: inverted TX GPIO1, RX GPIO3.
@@ -7,7 +7,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/Fredzxda/esphome-aldes-easyhome
-      ref: dev/vmc-mode-control
+      ref: main
     components: [aldes_ibus]
     refresh: always
 
@@ -168,7 +168,7 @@ text_sensor:
     name: "Version firmware Aldes"
     entity_category: diagnostic
     icon: mdi:information-outline
-    lambda: 'return {"1.1.0-dev-qai"};'
+    lambda: 'return {"1.2.0"};'
     update_interval: 60s
   - platform: template
     name: "Polluant dominant"
