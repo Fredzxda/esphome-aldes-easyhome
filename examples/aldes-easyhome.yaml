@@ -1,4 +1,4 @@
-# ESPHome EasyHome v1.1.0 example. Replace secrets with your local ESPHome secrets.
+# ESPHome EasyHome v1.2.0 example. Replace secrets with your local ESPHome secrets.
 substitutions:
   device_name: aldes-easyhome
   friendly_name: Aldes EasyHome
