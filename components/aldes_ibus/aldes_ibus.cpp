@@ -20,18 +20,29 @@ void AldesIBus::set_corrected_humidity_enabled(bool enabled) {
   publish_room_humidities_();
 }
 
+float AldesIBus::get_raw_humidity(size_t room) const {
+  if (room >= 3 || !raw_humidity_valid_[room]) return NAN;
+  return raw_humidity_[room];
+}
+
+float AldesIBus::get_corrected_humidity(size_t room) const {
+  if (room >= 3 || !raw_humidity_valid_[room] || !room_temperature_valid_[room]) return NAN;
+  const float humidity = raw_humidity_[room];
+  const double t = room_temperature_[room];
+  if (t <= 20.0) return humidity;
+  const double factor = std::exp(32.770308 * (20.0 / 501.1436 - t / (481.1436 + t)));
+  return static_cast<float>(humidity * factor);
+}
+
 void AldesIBus::publish_room_humidities_() {
   for (size_t room = 0; room < 3; ++room) {
     auto *sensor = room_sensors_[room * 2 + 1];
     if (!sensor || !raw_humidity_valid_[room]) continue;
-    float humidity = raw_humidity_[room];
-    if (corrected_humidity_enabled_ && room_temperature_valid_[room] &&
-        room_temperature_[room] > 20.0f) {
-      const double t = room_temperature_[room];
-      const double factor = std::exp(32.770308 * (20.0 / 501.1436 - t / (481.1436 + t)));
-      humidity = static_cast<float>(humidity * factor);
-    }
-    sensor->publish_state(humidity);
+    // Only the Home Assistant published value follows the selector.
+    // Internal QAI continues to read raw_humidity_.
+    const float humidity = corrected_humidity_enabled_
+        ? get_corrected_humidity(room) : get_raw_humidity(room);
+    if (!std::isnan(humidity)) sensor->publish_state(humidity);
   }
 }
 
