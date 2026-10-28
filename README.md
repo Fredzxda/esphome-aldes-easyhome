@@ -96,13 +96,15 @@ Ces entités servent principalement au dépannage et à l'analyse du protocole. 
 | **Version firmware Aldes** | Version définie dans le package GitHub et compilée dans l'ESP32 |
 | **Redemarrer Aldes EasyHome** | Bouton de redémarrage de l'ESP32 |
 
+**Humidités corrigées `hr*co` :** ces valeurs apparaissent dans les anciens relevés AldesConnect, mais ne sont **pas disponibles comme entités** dans l'intégration ESPHome actuelle. Leur méthode de correction et leur présence éventuelle dans les données iBUS restent à établir. Les capteurs « Humidité » exposent les valeurs brutes de la VMC. Voir [la reconstruction QAI](docs/qai-reconstruction.md).
+
 **À noter :** le calcul QAI est une reconstruction expérimentale du QAI cloud Aldes, sans météo extérieure et sans lissage. Les valeurs de l’indice global attendent les trois sondes d’humidité et le CO₂. [Méthode, formules, statistiques et limites](docs/qai-reconstruction.md). Certains champs iBUS restent inconnus.
 
 ### Fonctions
 
 #### Gestion du mode de la VMC
 
-Home Assistant permet de demander les modes **Programmation**, **Vacances**, **Quotidien**, **Boost** et **Invités**. Le mode choisi est mémorisé sur l'ESP32, restauré après redémarrage et envoyé périodiquement sur iBUS. L'affichage du sélecteur **Mode VMC Demandé** représente la commande demandée, pas une confirmation d'exécution par la VMC. Le capteur **Mode VMC Actuel** est, lui, décodé à partir de la réponse iBUS de la VMC : il représente le mode qu'elle applique effectivement, lequel peut évoluer automatiquement en fonction de la qualité de l'air de la maison.
+Home Assistant permet de demander les modes **Programmation**, **Vacances**, **Quotidien**, **Boost** et **Invités**. **Limite actuelle du mode Programmation :** le choix du mode est possible, mais il n'est pas encore possible de régler les plages horaires ni les modes associés à chaque plage depuis cette intégration. Nous n'avons pas encore déterminé si ces paramètres étaient stockés dans l'AldesConnect Box ou transmis à la VMC pour fonctionner de manière autonome. Voir [les questions techniques ouvertes](docs/observations-non-elucidees.md). Le mode choisi est mémorisé sur l'ESP32, restauré après redémarrage et envoyé périodiquement sur iBUS. L'affichage du sélecteur **Mode VMC Demandé** représente la commande demandée, pas une confirmation d'exécution par la VMC. Le capteur **Mode VMC Actuel** est, lui, décodé à partir de la réponse iBUS de la VMC : il représente le mode qu'elle applique effectivement, lequel peut évoluer automatiquement en fonction de la qualité de l'air de la maison.
 
 #### Reprise automatique de la ventilation : Self Controlled
 
