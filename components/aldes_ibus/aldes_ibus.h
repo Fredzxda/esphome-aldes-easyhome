@@ -45,8 +45,7 @@ class AldesIBus : public Component, public uart::UARTDevice {
   // Empirical reconstruction of the historical Aldes QAI; no smoothing.
   // Wait for all probes to have published before calculating humidity QAI.
   float qai_humidity_wet() const {
-    if (!room_sensors_[1] || !room_sensors_[3] || !room_sensors_[5] ||
-        ! !raw_humidity_valid_[0] || !raw_humidity_valid_[1] ||
+    if (!raw_humidity_valid_[0] || !raw_humidity_valid_[1] ||
         !raw_humidity_valid_[2]) return NAN;
     const float maximum = std::max(raw_humidity_[0],
                           std::max(raw_humidity_[1], raw_humidity_[2]));
@@ -60,9 +59,8 @@ class AldesIBus : public Component, public uart::UARTDevice {
     return std::min(100, h - 1);
   }
   float qai_humidity_dry() const {
-    if (!room_sensors_[1] || !room_sensors_[3] || !room_sensors_[5] ||
-        !room_sensors_[1]->has_state() || !room_sensors_[3]->has_state() ||
-        !room_sensors_[5]->has_state()) return NAN;
+    if (!raw_humidity_valid_[0] || !raw_humidity_valid_[1] ||
+        !raw_humidity_valid_[2]) return NAN;
     const float minimum = std::min(raw_humidity_[0],
                           std::min(raw_humidity_[1], raw_humidity_[2]));
     return std::min(100.0f, std::max(0.0f, std::floor(2.5f * (50.0f - minimum))));
