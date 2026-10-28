@@ -119,6 +119,68 @@ button:
 # Raw iBUS humidity is used; VarHR is NOT the humidity QAI.
 # All QAI entities stay unavailable until the three humidity probes and CO2 are received.
 sensor:
+# Development-only diagnostics: remove all six before merging to main.
+# Values are independent of the display switch and do not feed internal calculations.
+  - platform: template
+    name: "Diagnostic humidité brute ${piece_1}"
+    entity_category: diagnostic
+    device_class: humidity
+    state_class: measurement
+    unit_of_measurement: "%"
+    accuracy_decimals: 2
+    update_interval: 10s
+    lambda: 'return id(easyhome_ibus).get_raw_humidity(0);'
+
+  - platform: template
+    name: "Diagnostic humidité corrigée ${piece_1}"
+    entity_category: diagnostic
+    device_class: humidity
+    state_class: measurement
+    unit_of_measurement: "%"
+    accuracy_decimals: 2
+    update_interval: 10s
+    lambda: 'return id(easyhome_ibus).get_corrected_humidity(0);'
+
+  - platform: template
+    name: "Diagnostic humidité brute ${piece_2}"
+    entity_category: diagnostic
+    device_class: humidity
+    state_class: measurement
+    unit_of_measurement: "%"
+    accuracy_decimals: 2
+    update_interval: 10s
+    lambda: 'return id(easyhome_ibus).get_raw_humidity(1);'
+
+  - platform: template
+    name: "Diagnostic humidité corrigée ${piece_2}"
+    entity_category: diagnostic
+    device_class: humidity
+    state_class: measurement
+    unit_of_measurement: "%"
+    accuracy_decimals: 2
+    update_interval: 10s
+    lambda: 'return id(easyhome_ibus).get_corrected_humidity(1);'
+
+  - platform: template
+    name: "Diagnostic humidité brute ${piece_3}"
+    entity_category: diagnostic
+    device_class: humidity
+    state_class: measurement
+    unit_of_measurement: "%"
+    accuracy_decimals: 2
+    update_interval: 10s
+    lambda: 'return id(easyhome_ibus).get_raw_humidity(2);'
+
+  - platform: template
+    name: "Diagnostic humidité corrigée ${piece_3}"
+    entity_category: diagnostic
+    device_class: humidity
+    state_class: measurement
+    unit_of_measurement: "%"
+    accuracy_decimals: 2
+    update_interval: 10s
+    lambda: 'return id(easyhome_ibus).get_corrected_humidity(2);'
+
   - platform: template
     id: ibus_qai_humid_wet
     name: "QAI humidite elevee"
