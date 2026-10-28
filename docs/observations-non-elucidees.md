@@ -36,7 +36,7 @@ Trames intégrales récupérées dans l'historique Home Assistant :
 
 **Statut : interprétation provisoire.**
 
-Le champ auparavant nommé « PWM Min » est renommé **PWM Cible QAI** dans la branche `dev/vmc-mode-control` pour ne pas lui attribuer une contrainte permanente non démontrée.
+Le champ auparavant nommé « PWM Min » est renommé **PWM Cible QAI** dans le package ESPHome pour ne pas lui attribuer une contrainte permanente non démontrée.
 
 Observations du 25 octobre 2026 :
 - En `self_controlled`, PWM QAI2 = 750 et PWM Actuel = 750 (mode Boost), y compris avec une consigne Vacances.
@@ -47,15 +47,27 @@ Observations du 25 octobre 2026 :
 
 ## 3. Déclenchement de `self_controlled` et calcul du QAI
 
-**Statut : seuil cloud rapporté par observation utilisateur ; formule locale expérimentale.**
+**Statut : observations de reprise de contrôle ; seuils et niveaux exacts non confirmés.**
 
 L'utilisateur avait constaté sur le modèle/cloud Aldes que `self_controlled` s'active lorsque **QAI > 69**. Il ne faut pas assimiler ce QAI cloud à notre indice local sans comparaison.
 
-Notre formule actuelle dans `packages/easyhome.yaml` est :
+**Ancienne hypothèse abandonnée (ne correspond pas au firmware actuel) :**
 ```text
 QAI_Index = min(100, max(0, VarHR, 0.065 * CO2 - 28))
 ```
-Cette formule est une **hypothèse**, non une formule officielle Aldes. Le plafonnement à 100 masque la dynamique de VarHR au-delà de 100.
+
+**Calcul actuellement implémenté :**
+```text
+QAI_humidite = max(QAI_humidite_elevee, QAI_air_sec)
+QAI_Index = max(QAI_humidite, QAI_CO2)
+```
+Les contributions sont calculées à partir des **trois humidités brutes** et du **CO₂**, selon les barèmes et arrondis détaillés dans [la reconstruction QAI](qai-reconstruction.md). `VarHR` est publié séparément et **n'entre pas dans ce calcul**. L'indice local est expérimental et ne doit pas être assimilé sans validation à celui du cloud Aldes.
+
+**Self Controlled dans le firmware :** capteur binaire dérivé de `PWM Cible QAI >= 750`. Il indique une reprise de contrôle supposée par la régulation de qualité de l'air, mais **ne distingue pas les deux niveaux** de reprise observés ou envisagés :
+- Niveau 1 : ventilation élevée avec possibilité de choisir entre **Boost** et **Invités** (à confirmer).
+- Niveau 2 : vitesse maximale imposée, qui pourrait correspondre à **Invités** (à confirmer).
+
+La relation exacte entre les deux niveaux, les seuils QAI, `PWM Cible QAI` et `Mode VMC Actuel` n'est pas encore établie.
 
 Événement du 25 octobre 2026 :
 - 11:29:23 : QAI_Index local atteint 100.
