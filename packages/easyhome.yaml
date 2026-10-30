@@ -3,11 +3,16 @@
 #
 # Manual Boost TX test: inverted TX GPIO1, RX GPIO3.
 # Optional room labels supplied by the consuming YAML: piece_1, piece_2, piece_3.
+# DEV_ONLY_BEGIN
+packages:
+  development_diagnostics: !include dev-diagnostics.yaml
+# DEV_ONLY_END
+
 external_components:
   - source:
       type: git
       url: https://github.com/Fredzxda/esphome-aldes-easyhome
-      ref: humidite-corrigee
+      ref: dev/connectivity-diagnostics
     components: [aldes_ibus]
     refresh: always
 
@@ -119,6 +124,7 @@ button:
 # Raw iBUS humidity is used; VarHR is NOT the humidity QAI.
 # All QAI entities stay unavailable until the three humidity probes and CO2 are received.
 sensor:
+# DEV_ONLY_BEGIN
 # Development-only diagnostics: remove all six before merging to main.
 # Values are independent of the display switch and do not feed internal calculations.
   - platform: template
@@ -180,6 +186,8 @@ sensor:
     accuracy_decimals: 2
     update_interval: 10s
     lambda: 'return id(easyhome_ibus).get_corrected_humidity(2);'
+
+# DEV_ONLY_END
 
   - platform: template
     id: ibus_qai_humid_wet
@@ -332,9 +340,9 @@ globals:
 # Reevaluate at first valid time synchronization and periodically afterwards.
 esphome:
   on_boot:
-    priority: 600
-    then:
-      - output.turn_on: ibus_power_led
+    - priority: 600
+      then:
+        - output.turn_on: ibus_power_led
 
 script:
   - id: ibus_update_led_night_mode

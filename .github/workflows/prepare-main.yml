@@ -1,0 +1,30 @@
+name: Remove development diagnostics from main
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: prepare-main
+  cancel-in-progress: false
+jobs:
+  clean:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - name: Strip marked development code
+        run: |
+          python scripts/prepare_main.py --strip
+          python scripts/prepare_main.py --check
+      - name: Persist production-only source
+        run: |
+          git add -u -- packages components examples
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "chore: remove development diagnostics from main"
+          git push origin HEAD:main

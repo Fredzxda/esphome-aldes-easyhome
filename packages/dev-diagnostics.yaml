@@ -1,0 +1,145 @@
+# DEV_ONLY_FILE
+# Temporary diagnostics. Removed by scripts/prepare_main.py on promotion to main.
+# Wi-Fi/API counters are per boot; only the boot counter is persisted, once per boot.
+globals:
+  - id: dev_boot_count
+    type: uint32_t
+    initial_value: '0'
+  - id: dev_wifi_seen
+    type: bool
+    initial_value: 'false'
+  - id: dev_wifi_reconnections
+    type: uint32_t
+    initial_value: '0'
+  - id: dev_wifi_disconnects
+    type: uint32_t
+    initial_value: '0'
+  - id: dev_api_connections
+    type: uint32_t
+    initial_value: '0'
+  - id: dev_ha_seen
+    type: bool
+    initial_value: 'false'
+  - id: dev_ha_reconnections
+    type: uint32_t
+    initial_value: '0'
+  - id: dev_ha_disconnects
+    type: uint32_t
+    initial_value: '0'
+
+esphome:
+  on_boot:
+    - priority: 700
+      then:
+        - lambda: |-
+            // Dedicated NVS key; persist immediately so short reboot loops are visible.
+            auto pref = global_preferences->make_preference<uint32_t>(0xA1DEB007UL);
+            uint32_t boots = 0;
+            pref.load(&boots);
+            if (boots != UINT32_MAX) ++boots;
+            id(dev_boot_count) = boots;
+            if (!pref.save(&boots) || !global_preferences->sync()) {
+              ESP_LOGE("easyhome.diag", "Boot counter could not be persisted");
+            }
+            ESP_LOGI("easyhome.diag", "Boot #%u", static_cast<unsigned>(boots));
+
+wifi:
+  on_connect:
+    - lambda: |-
+        if (id(dev_wifi_seen)) ++id(dev_wifi_reconnections);
+        id(dev_wifi_seen) = true;
+        ESP_LOGI("easyhome.diag", "Wi-Fi connected, reconnects=%u",
+                 static_cast<unsigned>(id(dev_wifi_reconnections)));
+  on_disconnect:
+    - lambda: |-
+        ++id(dev_wifi_disconnects);
+        ESP_LOGW("easyhome.diag", "Wi-Fi disconnected, disconnects=%u",
+                 static_cast<unsigned>(id(dev_wifi_disconnects)));
+
+api:
+  on_client_connected:
+    - lambda: |-
+        ++id(dev_api_connections);
+        // A log viewer is also an API client. Do not mistake it for Home Assistant.
+        if (client_info.rfind("Home Assistant", 0) == 0) {
+          if (id(dev_ha_seen)) ++id(dev_ha_reconnections);
+          id(dev_ha_seen) = true;
+          ESP_LOGI("easyhome.diag", "Home Assistant connected, reconnects=%u",
+                   static_cast<unsigned>(id(dev_ha_reconnections)));
+        }
+  on_client_disconnected:
+    - lambda: |-
+        if (client_info.rfind("Home Assistant", 0) == 0) {
+          ++id(dev_ha_disconnects);
+          ESP_LOGW("easyhome.diag", "Home Assistant disconnected, disconnects=%u",
+                   static_cast<unsigned>(id(dev_ha_disconnects)));
+        }
+
+debug:
+  update_interval: 30s
+
+text_sensor:
+  - platform: debug
+    reset_reason:
+      name: "Diagnostic motif du dernier redemarrage"
+      entity_category: diagnostic
+
+sensor:
+  - platform: uptime
+    type: seconds
+    name: "Diagnostic duree depuis demarrage"
+    entity_category: diagnostic
+    update_interval: 30s
+  - platform: wifi_signal
+    name: "Diagnostic signal Wi-Fi"
+    entity_category: diagnostic
+    update_interval: 30s
+  - platform: debug
+    free:
+      name: "Diagnostic memoire libre"
+    min_free:
+      name: "Diagnostic memoire libre minimale"
+    loop_time:
+      name: "Diagnostic duree maximale boucle"
+  - platform: template
+    name: "Diagnostic demarrages persistants"
+    entity_category: diagnostic
+    state_class: total_increasing
+    accuracy_decimals: 0
+    update_interval: 10s
+    lambda: 'return id(dev_boot_count);'
+  - platform: template
+    name: "Diagnostic reconnexions Wi-Fi depuis demarrage"
+    entity_category: diagnostic
+    state_class: total_increasing
+    accuracy_decimals: 0
+    update_interval: 10s
+    lambda: 'return id(dev_wifi_reconnections);'
+  - platform: template
+    name: "Diagnostic deconnexions Wi-Fi depuis demarrage"
+    entity_category: diagnostic
+    state_class: total_increasing
+    accuracy_decimals: 0
+    update_interval: 10s
+    lambda: 'return id(dev_wifi_disconnects);'
+  - platform: template
+    name: "Diagnostic connexions API tous clients depuis demarrage"
+    entity_category: diagnostic
+    state_class: total_increasing
+    accuracy_decimals: 0
+    update_interval: 10s
+    lambda: 'return id(dev_api_connections);'
+  - platform: template
+    name: "Diagnostic reconnexions Home Assistant depuis demarrage"
+    entity_category: diagnostic
+    state_class: total_increasing
+    accuracy_decimals: 0
+    update_interval: 10s
+    lambda: 'return id(dev_ha_reconnections);'
+  - platform: template
+    name: "Diagnostic deconnexions Home Assistant depuis demarrage"
+    entity_category: diagnostic
+    state_class: total_increasing
+    accuracy_decimals: 0
+    update_interval: 10s
+    lambda: 'return id(dev_ha_disconnects);'
