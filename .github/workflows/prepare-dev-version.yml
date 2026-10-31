@@ -1,0 +1,39 @@
+name: Mark development branch firmware versions
+on:
+  create:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: dev-version-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  mark:
+    if: github.ref_type == 'branch' && github.ref_name != 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Apply development suffix idempotently
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          python scripts/prepare_dev_version.py --branch "$BRANCH"
+          python scripts/prepare_dev_version.py --check
+          python -m unittest discover -s tests -v
+      - name: Persist branch version
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          git add -- packages/easyhome.yaml examples/aldes-easyhome.yaml
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "chore: mark development firmware version"
+          git push origin "HEAD:refs/heads/$BRANCH"

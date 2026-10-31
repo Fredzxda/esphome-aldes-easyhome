@@ -33,6 +33,8 @@ def promote(root,strip=False):
             result=cleaned(original)
             if path==root/'packages/easyhome.yaml' and result is not None:
                 result=re.sub(r'(url: https://github.com/Fredzxda/esphome-aldes-easyhome\s+ref:) [^\n]+',r'\1 main',result)
+            if result is not None and path in (root/'packages/easyhome.yaml', root/'examples/aldes-easyhome.yaml'):
+                result=re.sub(r'(\d+\.\d+\.\d+)-dev\b',r'\1',result)
             if result!=original:edits.append((path,result))
     # Parse all markers before writing any file, so malformed input is atomic.
     if strip:

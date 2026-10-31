@@ -61,3 +61,27 @@ esphome config .ci-build/production/device.yaml
 
 Références : https://esphome.io/components/wifi/,
 https://esphome.io/components/api/, https://esphome.io/components/debug/.
+
+## Versions des branches
+
+La substitution `firmware_version` dans `packages/easyhome.yaml` alimente à la
+fois le projet ESPHome et le capteur « Version firmware Aldes ». Les branches
+hors `main` utilisent le suffixe `-dev` (par exemple `1.2.0-dev`).
+
+Le workflow `prepare-dev-version.yml` est déclenché à la création d'une branche,
+à chaque push hors main, et manuellement. Il applique le suffixe une seule fois
+et vérifie les versions avant de committer uniquement les deux fichiers concernés.
+Les tags et main sont exclus. Le workflow doit exister dans la branche créée ;
+pour les branches futures issues de main, il devra donc d'abord y être intégré.
+Un push produit avec GITHUB_TOKEN ne redéclenche pas les workflows : la validation
+complète du commit automatique pourra être lancée manuellement si nécessaire.
+
+`python scripts/prepare_dev_version.py --branch NOM` prépare une branche locale ;
+`--check` vérifie la cohérence sans écrire. Le nettoyage de production retire
+également le suffixe des déclarations de version. Le profil CI production utilise
+donc une version stable, tandis que le profil développement conserve `-dev`.
+La vérification d'une release exige une version stable correspondant au tag.
+
+Un appareil déjà flashé continue d'annoncer son ancienne version : une modification
+GitHub ne modifie pas le firmware en service. Il faudra préparer puis autoriser
+un prochain flashage pour voir le suffixe dans Home Assistant.

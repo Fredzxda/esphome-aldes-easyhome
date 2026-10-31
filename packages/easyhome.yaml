@@ -1,8 +1,11 @@
-# Release package v1.2.0. Import from GitHub with packages:
+# Release package v1.2.0-dev. Import from GitHub with packages:
 #   easyhome: github://Fredzxda/esphome-aldes-easyhome/packages/easyhome.yaml@main
 #
 # Manual Boost TX test: inverted TX GPIO1, RX GPIO3.
 # Optional room labels supplied by the consuming YAML: piece_1, piece_2, piece_3.
+substitutions:
+  firmware_version: "1.2.0-dev"
+
 # DEV_ONLY_BEGIN
 packages:
   development_diagnostics: !include dev-diagnostics.yaml
@@ -238,7 +241,7 @@ text_sensor:
     name: "Version firmware Aldes"
     entity_category: diagnostic
     icon: mdi:information-outline
-    lambda: 'return {"1.2.0"};'
+    lambda: 'return {"${firmware_version}"};'
     update_interval: 60s
   - platform: template
     name: "Polluant dominant"
@@ -339,6 +342,9 @@ globals:
 # Light POWER immediately at ESPHome startup, before Home Assistant time sync.
 # Reevaluate at first valid time synchronization and periodically afterwards.
 esphome:
+  project:
+    name: Fredzxda.aldes_easyhome
+    version: ${firmware_version}
   on_boot:
     - priority: 600
       then:
