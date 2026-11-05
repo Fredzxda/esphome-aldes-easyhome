@@ -26,6 +26,13 @@ class AldesIBus : public Component, public uart::UARTDevice {
   void publish_room_humidities_();
   float get_raw_humidity(size_t room) const;
   float get_corrected_humidity(size_t room) const;
+  uint32_t get_tx_commands() const { return tx_commands_; }
+  float get_seconds_since_last_tx() const {
+    return has_sent_mode_ ? static_cast<float>(millis() - last_tx_ms_) / 1000.0f : NAN;
+  }
+  float get_seconds_since_last_vmc_response() const {
+    return has_valid_frame_ ? static_cast<float>(millis() - last_valid_frame_ms_) / 1000.0f : NAN;
+  }
   uint8_t get_requested_mode() const { return pending_mode_; }
   void set_frames_ok_sensor(sensor::Sensor *s) { frames_ok_sensor_ = s; }
   void set_checksum_bad_sensor(sensor::Sensor *s) { checksum_bad_sensor_ = s; }
@@ -106,6 +113,7 @@ class AldesIBus : public Component, public uart::UARTDevice {
   bool has_sent_mode_{false};
   uint8_t last_sent_mode_{0};
   uint32_t rx_bytes_{0};
+  uint32_t tx_commands_{0};
   uint32_t last_publish_ms_{0};
   sensor::Sensor *frames_ok_sensor_{nullptr};
   sensor::Sensor *checksum_bad_sensor_{nullptr};
