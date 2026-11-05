@@ -154,6 +154,7 @@ void AldesIBus::loop() {
     this->last_tx_ms_ = millis();
     this->last_sent_mode_ = frame[8];
     this->has_sent_mode_ = true;
+    ++this->tx_commands_;
     ESP_LOGD(TAG, "VMC mode command sent: 0x%02X, checksum 0x%02X",
              frame[8], frame[17]);
   }
