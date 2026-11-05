@@ -79,6 +79,12 @@ debug:
   update_interval: 30s
 
 text_sensor:
+  - platform: debug
+    reset_reason:
+      name: "Diagnostic motif du dernier redemarrage"
+      entity_category: diagnostic
+
+sensor:
   # DEV ONLY: UART TX attempts and last valid VMC RX, sampled every 5 seconds.
   - platform: template
     name: "Diagnostic iBUS commandes emises"
@@ -103,12 +109,6 @@ text_sensor:
     accuracy_decimals: 0
     update_interval: 5s
     lambda: 'return id(easyhome_ibus).get_seconds_since_last_vmc_response();'
-  - platform: debug
-    reset_reason:
-      name: "Diagnostic motif du dernier redemarrage"
-      entity_category: diagnostic
-
-sensor:
   - platform: uptime
     type: seconds
     name: "Diagnostic duree depuis demarrage"
