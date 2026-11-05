@@ -119,6 +119,34 @@ button:
 # Raw iBUS humidity is used; VarHR is NOT the humidity QAI.
 # All QAI entities stay unavailable until the three humidity probes and CO2 are received.
 sensor:
+  # Temporary iBUS TX/RX diagnostics (dev only; remove before main merge).
+  # TX counts UART write attempts, not physical bus delivery or VMC acknowledgement.
+  - platform: template
+    name: "Diagnostic iBUS commandes émises"
+    entity_category: diagnostic
+    state_class: total_increasing
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: 'return id(easyhome_ibus).get_tx_commands();'
+
+  - platform: template
+    name: "Diagnostic iBUS secondes depuis dernière émission"
+    entity_category: diagnostic
+    unit_of_measurement: "s"
+    icon: mdi:timer-outline
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: 'return id(easyhome_ibus).get_seconds_since_last_tx();'
+
+  - platform: template
+    name: "Diagnostic iBUS secondes depuis dernière réponse VMC"
+    entity_category: diagnostic
+    unit_of_measurement: "s"
+    icon: mdi:timer-alert-outline
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: 'return id(easyhome_ibus).get_seconds_since_last_vmc_response();'
+
 # Development-only diagnostics: remove all six before merging to main.
 # Values are independent of the display switch and do not feed internal calculations.
   - platform: template
