@@ -79,6 +79,30 @@ debug:
   update_interval: 30s
 
 text_sensor:
+  # DEV ONLY: UART TX attempts and last valid VMC RX, sampled every 5 seconds.
+  - platform: template
+    name: "Diagnostic iBUS commandes emises"
+    entity_category: diagnostic
+    state_class: total_increasing
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: 'return id(easyhome_ibus).get_tx_commands();'
+  - platform: template
+    name: "Diagnostic iBUS secondes depuis derniere emission"
+    entity_category: diagnostic
+    unit_of_measurement: "s"
+    icon: mdi:timer-outline
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: 'return id(easyhome_ibus).get_seconds_since_last_tx();'
+  - platform: template
+    name: "Diagnostic iBUS secondes depuis derniere reponse VMC"
+    entity_category: diagnostic
+    unit_of_measurement: "s"
+    icon: mdi:timer-alert-outline
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: 'return id(easyhome_ibus).get_seconds_since_last_vmc_response();'
   - platform: debug
     reset_reason:
       name: "Diagnostic motif du dernier redemarrage"
